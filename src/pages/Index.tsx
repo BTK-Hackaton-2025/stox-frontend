@@ -1,13 +1,8 @@
 import React from "react";
-import DashboardLayout from "@/components/dashboard-layout";
-import Dashboard from "./Dashboard";
+import Landing from "./Landing";
 
 const Index = () => {
-  return (
-    <DashboardLayout>
-      <Dashboard />
-    </DashboardLayout>
-  );
+  return <Landing />;
 };
 
 export default Index;
