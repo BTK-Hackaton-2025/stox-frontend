@@ -39,7 +39,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background-soft">
+    <div className="min-h-screen bg-background-soft flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -50,17 +50,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 transform bg-background border-r border-border/50 transition-transform duration-300 ease-smooth lg:translate-x-0 lg:static lg:inset-0",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border/50 transition-transform duration-300 ease-smooth lg:relative lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex items-center justify-between p-6 border-b border-border/50">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <Package className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-semibold">Swift-Sell</span>
+              <img src="/logo.png" alt="Stox" className="h-10 w-auto" />
+              <span className="text-xl font-semibold">Stox</span>
             </div>
             <Button
               variant="ghost"
@@ -101,7 +99,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Quick actions */}
           <div className="p-4 border-t border-border/50">
-            <Button className="w-full" size="lg" asChild>
+            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" size="lg" asChild>
               <Link to="/products/new">
                 <Plus className="w-4 h-4 mr-2" />
                 New Product
@@ -112,22 +110,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-72">
+      <div className="flex-1 min-w-0">
         {/* Top bar */}
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
           <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center space-x-4">
+            {/* Left side - Mobile menu + Search */}
+            <div className="flex items-center flex-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden"
+                className="lg:hidden mr-4"
                 onClick={() => setSidebarOpen(true)}
               >
                 <Menu className="w-5 h-5" />
               </Button>
               
-              {/* Search */}
-              <div className="relative w-96 max-w-sm">
+              {/* Search - Always start from left on desktop */}
+              <div className="relative w-80 max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Search products..."
@@ -136,6 +135,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
 
+            {/* Right side - Notifications + Avatar */}
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />

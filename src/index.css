@@ -1,13 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Swift-Sell Design System - Modern SaaS Dashboard
+/* Stox Design System - Modern SaaS Dashboard
 All colors, gradients, fonts, and animations defined here.
 Inspired by Stripe, Linear, and Vercel aesthetics.
 */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -15,14 +15,14 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
     --background: 0 0% 100%;
     --foreground: 215 28% 17%;
     
-    /* Swift-Sell Brand Palette */
-    --primary: 213 94% 68%;        /* #2563EB - Trust Blue */
+    /* Stox Brand Palette */
+    --primary: 14 84% 50%;         /* #EB4E15 - Vibrant Orange-Red */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 213 94% 78%;   /* Lighter primary for glows */
+    --primary-glow: 14 84% 60%;    /* Lighter primary for glows */
     
-    --accent: 21 95% 54%;          /* #F97316 - Energy Orange */
-    --accent-foreground: 0 0% 100%;
-    --accent-glow: 21 95% 64%;     /* Lighter orange for glows */
+    --accent: 87 82% 51%;          /* #6CEB15 - Electric Green */
+    --accent-foreground: 0 0% 0%;
+    --accent-glow: 87 82% 61%;     /* Lighter green for glows */
     
     /* Surface Colors */
     --background-soft: 210 20% 98%;    /* #F9FAFB */
@@ -42,11 +42,11 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
     --ring: 213 94% 68%;
     
     /* Status Colors */
-    --success: 142 76% 36%;        /* Green for published */
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;         /* Yellow for pending */
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;      /* Red for errors */
+    --success: 87 82% 51%;         /* #6CEB15 - Electric Green for published */
+    --success-foreground: 0 0% 0%;
+    --warning: 20 100% 69%;        /* #FF8B61 - Coral for pending */
+    --warning-foreground: 0 0% 0%;
+    --destructive: 14 84% 50%;     /* #EB4E15 - Primary red-orange for errors */
     --destructive-foreground: 0 0% 100%;
     
     /* Glassmorphism & Effects */
@@ -60,6 +60,7 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-glow)));
     --gradient-soft: linear-gradient(180deg, hsl(var(--background-soft)), hsl(var(--background-muted)));
+    --gradient-hero: linear-gradient(135deg, hsl(14 84% 50%), hsl(20 100% 69%));
     
     /* Spacing & Layout */
     --radius: 12px;
@@ -82,33 +83,33 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
 
   .dark {
     /* Dark Theme - Deep Slate Base */
-    --background: 222 84% 5%;      /* #0F172A */
+    --background: 228 25% 18%;     /* #3F456B - Dark Purple-Gray */
     --foreground: 210 40% 98%;
     
-    --primary: 213 94% 68%;        /* Keep same blue */
-    --primary-foreground: 222 84% 5%;
-    --primary-glow: 213 94% 78%;
+    --primary: 14 84% 50%;         /* #EB4E15 - Vibrant Orange-Red */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 14 84% 60%;
     
-    --accent: 21 95% 54%;          /* Keep same orange */
-    --accent-foreground: 222 84% 5%;
-    --accent-glow: 21 95% 64%;
+    --accent: 87 82% 51%;          /* #6CEB15 - Electric Green */
+    --accent-foreground: 0 0% 0%;
+    --accent-glow: 87 82% 61%;
     
-    --background-soft: 215 28% 8%;    /* Slightly lighter than bg */
-    --background-muted: 215 28% 12%;  /* Card surfaces */
-    --card: 215 28% 12%;
+    --background-soft: 228 25% 22%;   /* Slightly lighter than bg */
+    --background-muted: 228 25% 26%;  /* Card surfaces */
+    --card: 228 25% 26%;
     --card-foreground: 210 40% 98%;
     
-    --secondary: 217 33% 18%;
+    --secondary: 228 25% 30%;
     --secondary-foreground: 210 40% 98%;
     
-    --muted: 217 33% 18%;
+    --muted: 228 25% 30%;
     --muted-foreground: 215 20% 65%;
     
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 213 94% 68%;
+    --border: 228 25% 30%;
+    --input: 228 25% 30%;
+    --ring: 14 84% 50%;
     
-    --glass-bg: 215 28% 12% / 0.8;
+    --glass-bg: 228 25% 26% / 0.8;
     --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
     --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
     --shadow-large: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
@@ -155,7 +156,7 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
 }
 
 @layer components {
-  /* Swift-Sell Component Patterns */
+  /* Stox Component Patterns */
   
   /* Glassmorphism card effect */
   .glass-card {
@@ -224,5 +225,123 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
   
   .progress-fill {
     @apply h-full bg-gradient-primary rounded-full transition-all duration-500 ease-smooth;
+  }
+
+  /* 3D Floating Cube Animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotateX(-12deg) rotateY(45deg);
+    }
+    50% {
+      transform: translateY(-15px) rotateX(-12deg) rotateY(45deg);
+    }
+  }
+
+  @keyframes floatSlow {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .animate-float-slow {
+    animation: floatSlow 4s ease-in-out infinite;
+  }
+
+  /* 3D Cube Styles */
+  .cube-container {
+    perspective: 2500px;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15));
+  }
+
+  .cube {
+    transform-style: preserve-3d;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .cube-face {
+    position: absolute;
+    width: 192px;
+    height: 192px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0px;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  .cube-x {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Diagonal lines for the cross - Individual styling */
+  .diagonal-line-1 {
+    position: absolute;
+    width: 401px; /* sqrt(192^2 + 352^2) for diagonal across rectangular face */
+    height: 36px;
+    background: linear-gradient(90deg, transparent 0%, white 10%, white 90%, transparent 100%);
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    border-radius: 10px;
+    transform: translate(-50%, -50%) rotate(62deg);
+  }
+
+  .diagonal-line-2 {
+    position: absolute;
+    width: 401px; /* sqrt(192^2 + 352^2) for diagonal across rectangular face */
+    height: 22px;
+    background: linear-gradient(90deg, transparent 0%, white 10%, white 90%, transparent 100%);
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    border-radius: 10px;
+    transform: translate(-50%, -50%) rotate(-62deg);
+  }
+
+  .cube-face-front {
+    transform: rotateY(0deg) translateZ(96px);
+  }
+
+  .cube-face-back {
+    transform: rotateY(180deg) translateZ(256px);
+  }
+
+  .cube-face-right {
+    transform: rotateY(90deg) translateZ(96px);
+  }
+
+  .cube-face-left {
+    transform: rotateY(-90deg) translateZ(176px) translateX(-80px);
+    width: 352px;
+  }
+
+  .cube-face-top {
+    transform: rotateX(90deg) translateZ(176px) translateY(-80px);
+    height: 352px;
+  }
+
+  .cube-face-bottom {
+    transform: rotateX(-90deg) translateZ(96px);
+  }
+
+  /* Transform utilities */
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
   }
 }

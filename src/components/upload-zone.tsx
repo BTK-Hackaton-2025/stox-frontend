@@ -92,6 +92,8 @@ export default function UploadZone({
           multiple
           className="hidden"
           onChange={handleFileSelect}
+          title="Upload Product Images"
+          placeholder="Upload Product Images"
         />
       </div>
 

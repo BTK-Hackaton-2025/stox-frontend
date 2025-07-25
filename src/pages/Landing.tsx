@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Upload, Sparkles, Zap, Target, BarChart3, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroImage from "@/assets/hero-dashboard.jpg";
+import FloatingCube from "@/components/floating-cube";
 
 const Landing = () => {
   return (
@@ -13,18 +13,16 @@ const Landing = () => {
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Zap className="h-4 w-4 text-primary-foreground" />
+                          <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="Stox" className="h-12 w-auto" />
+                <span className="text-xl font-semibold">stox</span>
               </div>
-              <span className="text-xl font-semibold">SwiftSell</span>
-            </div>
             <div className="flex items-center gap-4">
               <Link to="/dashboard">
                 <Button variant="ghost">Dashboard</Button>
               </Link>
               <Link to="/products/new">
-                <Button variant="hero" size="sm">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
                   Get Started
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -58,13 +56,13 @@ const Landing = () => {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/products/new">
-                  <Button variant="hero" size="xl" className="w-full sm:w-auto">
+                                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto" size="xl">
                     Start Selling Now
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
                 <Link to="/dashboard">
-                  <Button variant="glass" size="xl" className="w-full sm:w-auto">
+                  <Button variant="outline" size="xl" className="w-full sm:w-auto">
                     View Dashboard
                   </Button>
                 </Link>
@@ -88,13 +86,7 @@ const Landing = () => {
 
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-primary/20 rounded-3xl blur-3xl"></div>
-              <Card className="relative border-0 shadow-large overflow-hidden">
-                <img 
-                  src={heroImage} 
-                  alt="SwiftSell Dashboard Preview" 
-                  className="w-full h-auto rounded-lg"
-                />
-              </Card>
+              <FloatingCube />
             </div>
           </div>
         </div>
@@ -201,7 +193,7 @@ const Landing = () => {
               Join thousands of sellers who've already made the switch to intelligent marketplace management.
             </p>
             <Link to="/products/new">
-              <Button variant="hero" size="xl">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" size="xl">
                 Start Your First Listing
                 <ArrowRight className="h-5 w-5" />
               </Button>
@@ -214,14 +206,12 @@ const Landing = () => {
       <footer className="border-t py-12 bg-accent/5">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded bg-gradient-primary flex items-center justify-center">
-                <Zap className="h-3 w-3 text-primary-foreground" />
+                          <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="Stox" className="h-8 w-auto" />
+                <span className="font-semibold">Stox</span>
               </div>
-              <span className="font-semibold">SwiftSell</span>
-            </div>
             <div className="text-sm text-muted-foreground">
-              © 2024 SwiftSell. The future of marketplace selling.
+              © 2024 Stox. The future of marketplace selling.
             </div>
           </div>
         </div>
