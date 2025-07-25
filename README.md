@@ -18,10 +18,11 @@ git clone <https://github.com/BTK-Hackaton-2025/stox-frontend.git>
 cd stox-frontend
 
 # Step 3: Install the necessary dependencies
-npm install
+# NOTE: I suggest using pnpm (MAC: brew install pnpm, Windows-Powershell:Invoke-WebRequest https://get.pnpm.io/install.ps1 -UseBasicParsing | Invoke-Expression)
+pnpm install
 
 # Step 4: Start the development server
-npm run dev
+pnpm run dev
 ```
 
 ## Technologies Used
