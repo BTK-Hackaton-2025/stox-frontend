@@ -131,9 +131,14 @@ export default {
 				'pulse-glow': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.7' }
+				},
+				move: {
+					"0%": { transform: "translateX(-200px)" },
+					"100%": { transform: "translateX(200px)" },
 				}
 			},
 			animation: {
+				move: "move 5s linear infinite",
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
@@ -141,7 +146,7 @@ export default {
 				'scale-in': 'scale-in 0.2s ease-out',
 				'shimmer': 'shimmer 2s ease-in-out infinite',
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-			}
+			},
 		}
 	},
 	plugins: [tailwindcssAnimate],
