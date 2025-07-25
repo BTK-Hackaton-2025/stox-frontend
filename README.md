@@ -15,7 +15,7 @@ A sophisticated marketplace platform built with modern web technologies, featuri
 git clone <https://github.com/BTK-Hackaton-2025/stox-frontend.git>
 
 # Step 2: Navigate to the project directory
-cd swift-sell
+cd stox-frontend
 
 # Step 3: Install the necessary dependencies
 npm install
