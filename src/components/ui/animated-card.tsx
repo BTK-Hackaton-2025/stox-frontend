@@ -9,10 +9,9 @@ export function CardDemo() {
       <CardSkeletonContainer>
         <Skeleton />
       </CardSkeletonContainer>
-      <CardTitle>Damn good card</CardTitle>
+      <CardTitle>Sadece Bir Fotoğraf</CardTitle>
       <CardDescription>
-        A card that showcases a set of tools that you use to create your
-        product.
+        Bir fotoğraf yükleyin, AI ile iyileştirin ve SEO uyumlu metinler oluştursun, ardından anında Amazon, Trendyol ve Hepsiburada'da yayınlasın. E-ticaretin geleceği, satış için tasarlandı.
       </CardDescription>
     </Card>
   );
@@ -74,9 +73,11 @@ const Skeleton = () => {
   return (
     <div className="p-8 overflow-hidden h-full relative flex items-center justify-center">
       <div className="flex flex-row shrink-0 justify-center items-center gap-2">
-        <Container className="h-50 w-50 circle-5">
-          <img src="/placeholder.png" alt="placeholder" />
-        </Container>
+        <CardSkeletonContainer showGradient={false}>
+          <Container className="h-40 w-40 mt-20">
+            <img src="/before.jpg" alt="placeholder" />
+          </Container>
+        </CardSkeletonContainer>
       </div>
 
       <div className="h-40 w-px absolute top-20 m-auto z-40 bg-gradient-to-b from-transparent via-cyan-500 to-transparent animate-move">
@@ -152,7 +153,7 @@ export const CardTitle = ({
   return (
     <h3
       className={cn(
-        "text-lg font-semibold text-gray-800 dark:text-white py-2",
+        "text-lg font-gotham-black text-gray-800 dark:text-white py-2",
         className
       )}
     >
@@ -183,7 +184,7 @@ export const CardDescription = ({
 export const CardSkeletonContainer = ({
   className,
   children,
-  showGradient = true,
+  showGradient = false, // default to false for no vignette
 }: {
   className?: string;
   children: React.ReactNode;
@@ -197,6 +198,8 @@ export const CardSkeletonContainer = ({
         showGradient &&
           "bg-neutral-300 dark:bg-[rgba(40,40,40,0.70)] [mask-image:radial-gradient(50%_50%_at_50%_50%,white_0%,transparent_100%)]"
       )}
+      // Remove mask and bg if showGradient is false
+      style={!showGradient ? { background: 'none', maskImage: 'none', WebkitMaskImage: 'none' } : {}}
     >
       {children}
     </div>

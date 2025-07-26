@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center justify-between p-6 border-b border-border/50">
             <div className="flex items-center space-x-3">
               <img src="/logo.png" alt="Stox" className="h-10 w-auto" />
-              <span className="text-xl font-semibold">Stox</span>
+              <span className="text-xl font-gotham-black">Stox</span>
             </div>
             <Button
               variant="ghost"

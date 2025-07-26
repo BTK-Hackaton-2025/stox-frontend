@@ -207,7 +207,7 @@ export default function NewProduct() {
                           />
                         </div>
                         <div>
-                          <h3 className="font-semibold">{formData.title || "Product Title"}</h3>
+                          <h3 className="font-gotham-black">{formData.title || "Product Title"}</h3>
                           <p className="text-2xl font-bold text-primary mt-1">
                             ${formData.price || "0.00"}
                           </p>

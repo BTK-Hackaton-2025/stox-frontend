@@ -18,8 +18,8 @@ const NotFound = () => {
       <div className="text-center space-y-8 max-w-md mx-auto px-6">
         {/* Logo */}
         <div className="flex justify-center items-center space-x-4 mb-8">
-          <img src="/logo.png" alt="Stox" className="h-16 w-auto" />
-          <span className="text-2xl font-semibold">Stox</span>
+                  <img src="/logo.png" alt="Stox" className="h-16 w-auto" />
+        <span className="text-2xl font-gotham-black">Stox</span>
         </div>
         
         {/* 404 Content */}

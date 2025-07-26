@@ -21,6 +21,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
+				gotham: ['Gotham Black', 'Gotham', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

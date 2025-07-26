@@ -55,7 +55,6 @@ export const FileUpload = ({
   return (
     <div className="w-full flex flex-col lg:flex-row items-center justify-center gap-8" {...getRootProps()}>
       <motion.div
-        onClick={handleClick}
         whileHover="animate"
         className="p-10 group/file block rounded-lg cursor-pointer w-full lg:w-1/2 relative overflow-hidden"
       >
@@ -73,10 +72,10 @@ export const FileUpload = ({
         </div>
         <div className="flex flex-col items-center justify-center">
           <p className="relative z-20 font-sans font-bold text-neutral-700 dark:text-neutral-300 text-base">
-            Upload file
+            Fotoğraf Yükle
           </p>
           <p className="relative z-20 font-sans font-normal text-neutral-400 dark:text-neutral-400 text-base mt-2">
-            Drag or drop your files here or click to upload
+            Fotoğrafınızı sürükleyin veya tıklayarak yükleyin
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
             {files.length > 0 &&

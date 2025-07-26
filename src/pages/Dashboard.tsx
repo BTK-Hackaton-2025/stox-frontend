@@ -65,7 +65,7 @@ export default function Dashboard() {
       <div className="relative overflow-hidden bg-gradient-primary rounded-lg p-8 text-primary-foreground">
         <div className="relative z-10 max-w-2xl">
           <h1 className="text-3xl font-bold mb-4">
-            Welcome to Stox
+            Welcome to <span className="font-gotham-black">Stox</span>
           </h1>
           <p className="text-primary-foreground/90 text-lg mb-6">
             Your one-stop control panel for publishing products across multiple marketplaces with AI-powered optimization.

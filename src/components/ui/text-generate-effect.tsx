@@ -24,8 +24,10 @@ export const TextGenerateEffect = ({
         filter: filter ? "blur(0px)" : "none",
       },
       {
-        duration: duration ? duration : 1,
+        duration: 0.5,
         delay: stagger(0.2),
+        repeat: Infinity,
+        repeatDelay: 2,
       }
     );
   }, [scope.current]);
