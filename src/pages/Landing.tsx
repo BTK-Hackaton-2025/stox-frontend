@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuthState } from "@/contexts/AuthContext";
 import FloatingCube from "@/components/floating-cube";
 import { FileUpload } from "@/components/ui/file-upload";
 import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
@@ -11,6 +12,8 @@ import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { cn } from "@/lib/utils";
 
 const Landing = () => {
+  const { isAuthenticated } = useAuthState();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
 
@@ -18,20 +21,36 @@ const Landing = () => {
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="Stox" className="h-12 w-auto" />
-                <span className="text-xl font-gotham-black">stox</span>
-              </div>
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Stox" className="h-12 w-auto" />
+              <span className="text-xl font-gotham-black">stox</span>
+            </div>
             <div className="flex items-center gap-4">
-              <Link to="/dashboard">
-                <Button variant="ghost">Panele Git</Button>
-              </Link>
-              <Link to="/products/new">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
-                  Hemen Başla
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                // Show dashboard access for authenticated users
+                <Link to="/dashboard">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
+                    Dashboard
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                // Show authentication options for unauthenticated users
+                <>
+                  <Link to="/auth">
+                    <Button variant="ghost">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/auth">
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
+                      Get Started
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

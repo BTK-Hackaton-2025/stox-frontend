@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Package, 
@@ -11,10 +11,24 @@ import {
   Bell,
   Search,
   Menu,
-  X
+  X,
+  User,
+  LogOut,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
@@ -22,7 +36,7 @@ interface DashboardLayoutProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Orders', href: '/orders', icon: ShoppingCart },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
@@ -32,10 +46,32 @@ const navigation = [
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const isActive = (href: string) => {
-    if (href === '/') return location.pathname === '/';
+    if (href === '/dashboard') return location.pathname === '/dashboard';
     return location.pathname.startsWith(href);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
+  };
+
+  // Generate user initials
+  const getUserInitials = () => {
+    if (!user?.firstName || !user?.lastName) return 'U';
+    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  };
+
+  // Get role badge color
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'admin': return 'destructive';
+      case 'moderator': return 'secondary';
+      default: return 'outline';
+    }
   };
 
   return (
@@ -135,7 +171,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
 
-            {/* Right side - Notifications + Avatar */}
+            {/* Right side - Notifications + User Menu */}
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
@@ -144,9 +180,69 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </span>
               </Button>
               
-              <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-primary-foreground">JS</span>
-              </div>
+              {/* User Dropdown Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src="" alt={user?.firstName || 'User'} />
+                      <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-64" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm font-medium leading-none">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <Badge variant={getRoleBadgeVariant(user?.role || 'user')} className="text-xs">
+                          {user?.role}
+                        </Badge>
+                      </div>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  {/* Profile */}
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  
+                  {/* Settings */}
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  {/* Admin Panel (only for admins) */}
+                  {user?.role === 'admin' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  
+                  <DropdownMenuSeparator />
+                  
+                  {/* Logout */}
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>

@@ -1,0 +1,175 @@
+// Login Form Component
+
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import type { LoginRequest } from '@/types/auth';
+
+// Validation schema
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .min(8, 'Password must be at least 8 characters'),
+});
+
+interface LoginFormProps {
+  onSuccess?: () => void;
+  onSwitchToRegister?: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const { login, isLoading } = useAuth();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<LoginRequest>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginRequest) => {
+    try {
+      await login(data);
+      onSuccess?.();
+    } catch (error: unknown) {
+      // Handle specific field errors
+      if (error && typeof error === 'object' && 'errors' in error && Array.isArray(error.errors)) {
+        error.errors.forEach((err: { field: string; message: string }) => {
+          setError(err.field as keyof LoginRequest, {
+            type: 'server',
+            message: err.message,
+          });
+        });
+      } else {
+        setError('root', {
+          type: 'server',
+          message: error instanceof Error ? error.message : 'Login failed. Please try again.',
+        });
+      }
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+        <CardDescription className="text-center">
+          Enter your credentials to access your account
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Email Field */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                className="pl-10"
+                {...register('email')}
+                disabled={isSubmitting || isLoading}
+              />
+            </div>
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Password Field */}
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                className="pl-10 pr-10"
+                {...register('password')}
+                disabled={isSubmitting || isLoading}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isSubmitting || isLoading}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
+            {errors.password && (
+              <p className="text-sm text-destructive">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Root Error */}
+          {errors.root && (
+            <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive">{errors.root.message}</p>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isSubmitting || isLoading}
+          >
+            {isSubmitting || isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              'Sign In'
+            )}
+          </Button>
+
+          {/* Switch to Register */}
+          {onSwitchToRegister && (
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="p-0 h-auto font-semibold"
+                  onClick={onSwitchToRegister}
+                  disabled={isSubmitting || isLoading}
+                >
+                  Sign up
+                </Button>
+              </p>
+            </div>
+          )}
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default LoginForm;
