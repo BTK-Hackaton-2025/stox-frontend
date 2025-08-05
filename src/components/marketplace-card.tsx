@@ -47,7 +47,7 @@ export default function MarketplaceCard({
           <div className="flex items-start space-x-2 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
             <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
             <div className="text-sm text-destructive">
-              <p className="font-medium">Publishing Error</p>
+              <p className="font-medium">Yayın Hata</p>
               <p className="text-destructive/80">{error}</p>
             </div>
           </div>
@@ -55,7 +55,7 @@ export default function MarketplaceCard({
         
         {lastSync && (
           <p className="text-sm text-muted-foreground">
-            Last sync: {lastSync}
+            Son senkronizasyon: {lastSync}
           </p>
         )}
         
@@ -64,18 +64,18 @@ export default function MarketplaceCard({
             <Button variant="outline" size="sm" asChild>
               <a href={url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-2" />
-                View Listing
+                Listelemeyi Görüntüle
               </a>
             </Button>
           ) : (
             <Button variant="ghost" size="sm" disabled>
-              Not Published
+              Yayınlanmamış
             </Button>
           )}
           
           {status === "error" && (
             <Button variant="outline" size="sm">
-              Retry
+              Tekrar Dene
             </Button>
           )}
         </div>

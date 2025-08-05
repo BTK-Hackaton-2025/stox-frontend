@@ -140,7 +140,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" size="lg" asChild>
               <Link to="/products/new">
                 <Plus className="w-4 h-4 mr-2" />
-                New Product
+                Yeni Ürün
               </Link>
             </Button>
           </div>
@@ -167,7 +167,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="relative w-80 max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder="Ürünleri ara..."
                   className="pl-10 bg-background-muted/50 border-border/50 focus:border-primary"
                 />
               </div>
@@ -215,14 +215,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {/* Profile */}
                   <DropdownMenuItem className="cursor-pointer hover:bg-accent">
                     <User className="mr-2 h-4 w-4 text-foreground" />
-                    <span className="text-foreground font-medium">Profile</span>
+                    <span className="text-foreground font-medium">Profil</span>
                   </DropdownMenuItem>
                   
                   {/* Settings */}
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
                     <Link to="/settings" className="flex items-center w-full">
                       <Settings className="mr-2 h-4 w-4 text-foreground" />
-                      <span className="text-foreground font-medium">Settings</span>
+                      <span className="text-foreground font-medium">Ayarlar</span>
                     </Link>
                   </DropdownMenuItem>
                   
@@ -231,7 +231,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
                       <Link to="/admin" className="flex items-center w-full">
                         <Shield className="mr-2 h-4 w-4 text-foreground" />
-                        <span className="text-foreground font-medium">Admin Panel</span>
+                        <span className="text-foreground font-medium">Yönetim Paneli</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -244,7 +244,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     className="text-destructive hover:bg-destructive/10 cursor-pointer"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span className="font-medium">Log out</span>
+                    <span className="font-medium">Çıkış Yap</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

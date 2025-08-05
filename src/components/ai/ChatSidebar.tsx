@@ -71,7 +71,7 @@ export default function ChatSidebar({
           </div>
           <div>
             <h2 className="font-semibold text-sm">Stox AI</h2>
-            <p className="text-xs text-muted-foreground">Personal Market Agent</p>
+            <p className="text-xs text-muted-foreground">Kişisel Çoklu Market AI Aracı</p>
           </div>
         </div>
         
@@ -81,7 +81,7 @@ export default function ChatSidebar({
           variant="outline"
         >
           <Plus className="w-4 h-4 mr-2" />
-          New Conversation
+          Yeni Konuşma
         </Button>
       </div>
 
@@ -90,7 +90,7 @@ export default function ChatSidebar({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Search conversations..." 
+            placeholder="Konuşmaları ara..." 
             className="pl-10 text-sm"
           />
         </div>
@@ -102,8 +102,8 @@ export default function ChatSidebar({
           {conversations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No conversations yet</p>
-              <p className="text-xs">Start chatting with Stox AI</p>
+              <p className="text-sm">Henüz konuşma yok</p>
+              <p className="text-xs">Stox AI ile konuşmaya başlayın</p>
             </div>
           ) : (
             conversations.map((conversation) => (
@@ -159,7 +159,7 @@ export default function ChatSidebar({
       <div className="p-4 border-t border-border/50">
         <Button variant="ghost" size="sm" className="w-full justify-start text-sm">
           <Settings className="w-4 h-4 mr-2" />
-          AI Settings
+          AI Ayarları
         </Button>
       </div>
     </div>

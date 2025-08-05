@@ -58,13 +58,14 @@ const Auth: React.FC = () => {
 
         {/* Terms and Privacy */}
         <div className="mt-6 text-center text-sm text-muted-foreground">
-          By continuing, you agree to our{' '}
+          Devam ederek, Stox\'un{' '}
           <a href="#" className="underline hover:text-foreground">
-            Terms of Service
+            Hizmet Şartlarını
           </a>{' '}
           and{' '}
           <a href="#" className="underline hover:text-foreground">
-            Privacy Policy
+            Gizlilik Politikasını
+            onaylıyorsunuz.
           </a>
         </div>
       </div>

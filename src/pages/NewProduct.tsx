@@ -150,9 +150,9 @@ export default function NewProduct() {
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Create New Product</h1>
+        <h1 className="text-3xl font-bold">Yeni Ürün Oluştur</h1>
         <p className="text-muted-foreground mt-1">
-          Fill in your product details and use AI magic wands to enhance individual fields
+          Ürün detaylarını doldurun ve AI sihirbazlarını kullanarak bireysel alanları geliştirin
               </p>
             </div>
             
@@ -162,12 +162,12 @@ export default function NewProduct() {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">AI Processing Your Images</span>
-                <span className="text-sm text-muted-foreground">Processing...</span>
+                <span className="text-sm font-medium">AI Resimlerinizin İşleniyor</span>
+                <span className="text-sm text-muted-foreground">İşleniyor...</span>
                     </div>
                     <Progress value={65} className="h-2" />
                     <p className="text-sm text-muted-foreground">
-                ✨ Analyzing images, generating SEO-optimized titles and descriptions, enhancing product features...
+                ✨ Resimleriniz analiz ediliyor, SEO uyumlu başlık ve açıklamalar oluşturuluyor, ürün özellikleri geliştiriliyor...
                     </p>
                   </div>
                 </CardContent>
@@ -183,7 +183,7 @@ export default function NewProduct() {
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center">
                   <ImageIcon className="w-5 h-5 mr-2" />
-                  Product Images
+                  Ürün Resimleri
                 </div>
                 <Button
                   onClick={enhanceImages}
@@ -222,14 +222,14 @@ export default function NewProduct() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Package className="w-5 h-5 mr-2" />
-                Product Details
+                Ürün Detayları
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <Label htmlFor="title">Product Title *</Label>
+                    <Label htmlFor="title">Ürün Başlığı *</Label>
                     <Button
                       onClick={() => generateFieldContent('title')}
                       disabled={files.length === 0}
@@ -244,13 +244,13 @@ export default function NewProduct() {
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Enter product title"
+                    placeholder="Ürün başlığını giriniz"
                   />
                 </div>
                 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <Label htmlFor="description">Description *</Label>
+                    <Label htmlFor="description">Açıklama *</Label>
                     <Button
                       onClick={() => generateFieldContent('description')}
                       disabled={files.length === 0}
@@ -265,14 +265,14 @@ export default function NewProduct() {
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Detailed product description"
+                    placeholder="Ürün açıklamasını giriniz"
                     rows={4}
                   />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="price">Price ($) *</Label>
+                    <Label htmlFor="price">Fiyat ($) *</Label>
                     <Input
                       id="price"
                       type="number"
@@ -285,10 +285,10 @@ export default function NewProduct() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="category">Category *</Label>
+                    <Label htmlFor="category">Kategori *</Label>
                     <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder="Kategori seçiniz" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
@@ -319,18 +319,18 @@ export default function NewProduct() {
                       id="sku"
                       value={formData.sku}
                       onChange={(e) => setFormData({...formData, sku: e.target.value})}
-                      placeholder="Product SKU"
+                      placeholder="Ürün SKU"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="inventory">Inventory</Label>
+                    <Label htmlFor="inventory">Stok</Label>
                     <Input
                       id="inventory"
                       type="number"
                       value={formData.inventory}
                       onChange={(e) => setFormData({...formData, inventory: e.target.value})}
-                      placeholder="Available quantity"
+                      placeholder="Mevcut stok"
                       className="mt-1"
                     />
                   </div>
@@ -338,24 +338,24 @@ export default function NewProduct() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="weight">Weight (g)</Label>
+                    <Label htmlFor="weight">Ağırlık (g)</Label>
                     <Input
                       id="weight"
                       type="number"
                       value={formData.weight}
                       onChange={(e) => setFormData({...formData, weight: e.target.value})}
-                      placeholder="Product weight"
+                      placeholder="Ürün ağırlığı"
                       className="mt-1"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="dimensions">Dimensions</Label>
+                    <Label htmlFor="dimensions">Boyutlar</Label>
                     <Input
                       id="dimensions"
                       value={formData.dimensions}
                       onChange={(e) => setFormData({...formData, dimensions: e.target.value})}
-                      placeholder="L x W x H (cm)"
+                      placeholder="Uzunluk x Genişlik x Yükseklik (cm)"
                       className="mt-1"
                     />
                   </div>
@@ -363,7 +363,7 @@ export default function NewProduct() {
                 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <Label htmlFor="keywords">SEO Keywords</Label>
+                    <Label htmlFor="keywords">SEO Anahtar Kelimeler</Label>
                     <Button
                       onClick={() => generateFieldContent('keywords')}
                       disabled={files.length === 0}
@@ -378,7 +378,7 @@ export default function NewProduct() {
                     id="keywords"
                     value={formData.keywords}
                     onChange={(e) => setFormData({...formData, keywords: e.target.value})}
-                    placeholder="Comma-separated keywords for better discoverability"
+                    placeholder="Virgül ile ayrılmış anahtar kelimeler daha iyi keşfedilebilirliği sağlar"
                   />
                 </div>
               </div>
@@ -388,9 +388,9 @@ export default function NewProduct() {
           {/* Marketplace Selection */}
           <Card className="glass-card">
             <CardHeader>
-              <CardTitle>Publish to Marketplaces</CardTitle>
+              <CardTitle>Pazaryerlerine Yayınla</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Select the marketplaces where you want to publish this product
+                Bu ürünün yayınlanacağı pazaryerlerini seçin
               </p>
             </CardHeader>
             <CardContent>
@@ -435,12 +435,12 @@ export default function NewProduct() {
               size="lg"
             >
               <Save className="w-5 h-5 mr-2" />
-              {isPublishing ? "Publishing..." : `Publish to ${selectedMarketplaces.length} Marketplace${selectedMarketplaces.length !== 1 ? 's' : ''}`}
+              {isPublishing ? "Yayınlanıyor..." : `Pazaryerlerine Yayınla ${selectedMarketplaces.length} Pazaryer${selectedMarketplaces.length !== 1 ? 'ler' : ''}`}
             </Button>
             
             <Button variant="outline" className="w-full">
               <Upload className="w-4 h-4 mr-2" />
-              Save as Draft
+              Taslak Olarak Kaydet
             </Button>
           </div>
         </div>

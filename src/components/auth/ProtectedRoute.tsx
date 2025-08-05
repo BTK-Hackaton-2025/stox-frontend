@@ -26,7 +26,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Yükleniyor...</p>
           </div>
         </div>
       )
@@ -46,12 +46,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md mx-auto px-6">
           <div className="text-6xl">🚫</div>
-          <h1 className="text-2xl font-bold">Access Denied</h1>
+          <h1 className="text-2xl font-bold">Erişim Reddedildi</h1>
           <p className="text-muted-foreground">
-            You don't have permission to access this page. Required role: {requiredRole}
+            Bu sayfaya erişim izniniz yok. Gerekli rol: {requiredRole}
           </p>
           <p className="text-sm text-muted-foreground">
-            Your current role: {user?.role || 'unknown'}
+            Mevcut rolünüz: {user?.role || 'bilinmiyor'}
           </p>
         </div>
       </div>

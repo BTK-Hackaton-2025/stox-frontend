@@ -25,9 +25,9 @@ const NotFound = () => {
         {/* 404 Content */}
         <div className="space-y-4">
           <h1 className="text-6xl font-bold text-primary">404</h1>
-          <h2 className="text-2xl font-semibold text-foreground">Page Not Found</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Sayfa Bulunamadı</h2>
           <p className="text-lg text-muted-foreground">
-            The page you're looking for doesn't exist or has been moved.
+            Aradığınız sayfa bulunamadı veya taşındı.
           </p>
         </div>
 
@@ -36,12 +36,12 @@ const NotFound = () => {
           <Link to="/">
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
               <Home className="h-4 w-4 mr-2" />
-              Go Home
+              Ana Sayfaya Dön
             </Button>
           </Link>
           <Button variant="outline" onClick={() => window.history.back()} className="w-full sm:w-auto">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Go Back
+            Geri Dön
           </Button>
         </div>
       </div>

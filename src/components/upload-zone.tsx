@@ -70,18 +70,18 @@ export default function UploadZone({
           </div>
           
           <div>
-            <h3 className="text-lg font-medium">Upload Product Images</h3>
+            <h3 className="text-lg font-medium">Ürün Resimlerini Yükle</h3>
             <p className="text-muted-foreground">
-              Drag & drop images here, or click to browse
+              Resimleri sürükleyip bırakın veya tıklayarak seçin
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              PNG, JPG, WebP up to 10MB each (max {maxFiles} images)
+              PNG, JPG, WebP (max {maxFiles} resim)
             </p>
           </div>
           
           <Button variant="outline" size="lg">
             <Upload className="w-4 h-4 mr-2" />
-            Choose Files
+            Dosyaları Seç
           </Button>
         </div>
         
@@ -92,15 +92,15 @@ export default function UploadZone({
           multiple
           className="hidden"
           onChange={handleFileSelect}
-          title="Upload Product Images"
-          placeholder="Upload Product Images"
+          title="Ürün Resimlerini Yükle"
+          placeholder="Ürün Resimlerini Yükle"
         />
       </div>
 
       {/* Selected Files */}
       {selectedFiles.length > 0 && (
         <div className="space-y-3">
-          <h4 className="font-medium text-sm">Selected Images ({selectedFiles.length}/{maxFiles})</h4>
+          <h4 className="font-medium text-sm">Seçilen Resimler ({selectedFiles.length}/{maxFiles})</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {selectedFiles.map((file, index) => (
               <div key={index} className="relative group">

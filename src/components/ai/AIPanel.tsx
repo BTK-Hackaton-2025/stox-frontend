@@ -31,42 +31,42 @@ interface AIPanelProps {
 const mockConversations: ChatConversation[] = [
   {
     id: '1',
-    title: 'Market Analysis for Electronics',
-    lastMessage: 'Based on current trends, the electronics market shows...',
-    timestamp: '2 hours ago',
+    title: 'Elektronik Ürünler için Market Analizi',
+    lastMessage: 'Güncel trendlere göre, elektronik piyasası güçlü bir şekilde büyümekte...',
+    timestamp: '2 saat önce',
     category: 'market',
     messages: [
       {
         id: '1',
-        content: 'Can you analyze the current market trends for electronics?',
+        content: 'Elektronik piyasasının güncel trendlerini analiz edebilir misiniz?',
         role: 'user',
         timestamp: '2:30 PM'
       },
       {
         id: '2',
-        content: 'Based on current trends, the electronics market shows strong growth in smart home devices and wearable technology. Here are the key insights:\n\n• Smart home devices: 23% growth YoY\n• Wearables: 18% growth YoY\n• Gaming peripherals: 15% growth YoY\n\nWould you like me to dive deeper into any specific category?',
+        content: 'Güncel trendlere göre, elektronik piyasasında akıllı ev cihazları ve kullanıcı dostu teknolojiler güçlü bir şekilde büyümekte. Burada ana görüşler:\n\n• Akıllı ev cihazları: %23 Yıllık Büyüme\n• Kullanıcı dostu teknolojiler: %18 Yıllık Büyüme\n• Oyun cihazları: %15 Yıllık Büyüme\n\nBelirli bir kategoriye daha derinlemesine inmek ister misiniz?',
         role: 'assistant',
         timestamp: '2:31 PM',
-        suggestions: ['Analyze smart home devices', 'Wearables market deep dive', 'Gaming trends analysis']
+        suggestions: ['Akıllı ev cihazlarını analiz et', 'Kullanıcı dostu teknolojileri derinlemesine incele', 'Oyun cihazları trendlerini analiz et']
       }
     ]
   },
   {
     id: '2',
-    title: 'Product Listing Optimization',
-    lastMessage: 'Here are the optimization recommendations...',
-    timestamp: '1 day ago',
+    title: 'Ürün Listesi Optimizasyonu',
+    lastMessage: 'Burada size yardımcı olabilirim...',
+    timestamp: '1 gün önce',
     category: 'product',
     messages: [
       {
         id: '1',
-        content: 'How can I optimize my wireless headphones listing?',
+        content: 'Nasıl yapabilirim? Burada size yardımcı olabilirim...',
         role: 'user',
         timestamp: 'Yesterday 3:15 PM'
       },
       {
         id: '2',
-        content: 'Here are the optimization recommendations for your wireless headphones listing:\n\n**Title Optimization:**\n• Include key features: "Premium Wireless Bluetooth Headphones - Noise Cancelling, 30H Battery Life"\n\n**Keywords to add:**\n• bluetooth headphones\n• noise cancelling\n• wireless earbuds\n• long battery life\n\n**Images:**\n• Add lifestyle images showing usage\n• Include feature callouts\n• Show size comparison\n\nWould you like me to help with specific marketplace requirements?',
+        content: 'Burada size yardımcı olabilirim:\n\n**Başlık Optimizasyonu:**\n• Önemli özellikleri içerir: "Premium Bluetooth Kulaklık - Gürültü Yalıtımı, 30H Batarya"\n\n**Eklemek için Anahtar Kelimeler:**\n• bluetooth kulaklık\n• gürültü yalıtımı\n• kablosuz kulaklık\n• uzun batarya ömrü\n\n**Resimler:**\n• Kullanım görüntüleri ekleyin\n• Özellik çağrısı ekleyin\n• Boyut karşılaştırması gösterin\n\nMarketplace gereksinimlerinize yardımcı olmak ister misiniz?',
         role: 'assistant',
         timestamp: 'Yesterday 3:16 PM'
       }
@@ -86,9 +86,9 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
     const newId = Date.now().toString();
     const newConversation: ChatConversation = {
       id: newId,
-      title: 'New Conversation',
+      title: 'Yeni Konuşma',
       lastMessage: '',
-      timestamp: 'Just now',
+      timestamp: 'Şimdi',
       category: 'general',
       messages: []
     };
@@ -124,7 +124,7 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
             ...conv, 
             messages: [...conv.messages, userMessage],
             lastMessage: content,
-            timestamp: 'Just now'
+            timestamp: 'Şimdi'
           }
         : conv
     ));
@@ -135,19 +135,19 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
     setTimeout(() => {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: `I understand you're asking about "${content}". This is a mock response from Stox AI. In the actual implementation, this would be connected to your AI backend service.
+        content: `"${content}" konusunda soruyorsunuz. Bu bir mock yanıt Stox AI'den. Gerçek uygulamada, bu AI arka ucunuza bağlanır.
 
-Here's what I can help you with:
-• Market analysis and trends
-• Product optimization strategies  
-• Pricing recommendations
-• Performance insights
-• Cross-platform listing management
+Burada size yardımcı olabilirim:
+• Market analizi ve trendler
+• Ürün optimizasyon stratejileri  
+• Fiyat önerileri
+• Performans bilgileri
+• Çoklu platform liste yönetimi
 
-Would you like me to elaborate on any of these topics?`,
+Bu konulardan hangisini açıklamak istersiniz?`,
         role: 'assistant',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestions: ['Market trends', 'Product optimization', 'Pricing strategy']
+        suggestions: ['Market trendleri', 'Ürün optimizasyonu', 'Fiyat önerileri']
       };
 
       setConversations(prev => prev.map(conv => 
@@ -156,8 +156,8 @@ Would you like me to elaborate on any of these topics?`,
               ...conv, 
               messages: [...conv.messages, aiMessage],
               lastMessage: aiMessage.content.substring(0, 50) + '...',
-              timestamp: 'Just now',
-              title: conv.title === 'New Conversation' 
+              timestamp: 'Şimdi',
+              title: conv.title === 'Yeni Konuşma' 
                 ? content.substring(0, 30) + (content.length > 30 ? '...' : '')
                 : conv.title
             }
@@ -185,7 +185,7 @@ Would you like me to elaborate on any of these topics?`,
             </div>
             <div>
               <h2 className="font-semibold">Stox AI</h2>
-              <p className="text-xs text-muted-foreground">Personal Multi-Market AI Agent</p>
+              <p className="text-xs text-muted-foreground">Kişisel Çoklu Market AI Aracı</p>
             </div>
           </div>
           
@@ -224,7 +224,7 @@ Would you like me to elaborate on any of these topics?`,
               messages={currentConversation?.messages || []}
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
-              conversationTitle={currentConversation?.title || 'New Conversation'}
+              conversationTitle={currentConversation?.title || 'Yeni Konuşma'}
             />
           </div>
         </div>

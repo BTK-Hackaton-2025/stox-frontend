@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AI from "./pages/AI";
 import NewProduct from "./pages/NewProduct";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/dashboard-layout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -82,10 +83,7 @@ const App = () => (
             <Route path="/settings" element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <div className="text-center py-12">
-                    <h1 className="text-2xl font-bold mb-4">Settings</h1>
-                    <p className="text-muted-foreground">Settings panel coming soon...</p>
-                  </div>
+                  <Settings />
                 </DashboardLayout>
               </ProtectedRoute>
             } />

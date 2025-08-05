@@ -16,12 +16,12 @@ import type { LoginRequest } from '@/types/auth';
 const loginSchema = z.object({
   email: z
     .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+    .min(1, 'Email gereklidir')
+    .email('Lütfen geçerli bir email adresi giriniz'),
   password: z
     .string()
-    .min(1, 'Password is required')
-    .min(8, 'Password must be at least 8 characters'),
+    .min(1, 'Şifre gereklidir')
+    .min(8, 'Şifre en az 8 karakter olmalıdır'),
 });
 
 interface LoginFormProps {
@@ -67,9 +67,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">Hoş Geldiniz</CardTitle>
         <CardDescription className="text-center">
-          Enter your credentials to access your account
+          Giriş yapmak için kimlik bilgilerinizi giriniz
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -82,7 +82,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Email adresinizi giriniz"
                 className="pl-10"
                 {...register('email')}
                 disabled={isSubmitting || isLoading}
@@ -101,7 +101,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
+                placeholder="Şifrenizi giriniz"
                 className="pl-10 pr-12 [&::-ms-reveal]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
                 autoComplete="current-password"
                 {...register('password')}
@@ -143,10 +143,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
             {isSubmitting || isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
+                Giriş yapılıyor...
               </>
             ) : (
-              'Sign In'
+              'Giriş Yap'
             )}
           </Button>
 
@@ -154,7 +154,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
           {onSwitchToRegister && (
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{' '}
+                Hesabınız yok mu?{' '}
                 <Button
                   type="button"
                   variant="link"
@@ -162,7 +162,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
                   onClick={onSwitchToRegister}
                   disabled={isSubmitting || isLoading}
                 >
-                  Sign up
+                  Kayıt Ol
                 </Button>
               </p>
             </div>

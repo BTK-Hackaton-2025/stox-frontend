@@ -38,6 +38,9 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
     --muted: 210 30% 96%;
     --muted-foreground: 215 16% 47%;
     
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 213 94% 68%;
@@ -105,6 +108,9 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
     
     --muted: 228 25% 30%;
     --muted-foreground: 215 20% 65%;
+    
+    --popover: 228 25% 26%;
+    --popover-foreground: 210 40% 98%;
     
     --border: 228 25% 30%;
     --input: 228 25% 30%;

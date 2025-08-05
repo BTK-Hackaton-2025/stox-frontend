@@ -65,21 +65,21 @@ export default function Dashboard() {
       <div className="relative overflow-hidden bg-gradient-primary rounded-lg p-8 text-primary-foreground">
         <div className="relative z-10 max-w-2xl">
           <h1 className="text-3xl font-bold mb-4">
-            Welcome to <span className="font-gotham-black">Stox</span>
+            <span className="font-gotham-black">Stox</span>'a Hoş Geldiniz
           </h1>
           <p className="text-primary-foreground/90 text-lg mb-6">
-            Your one-stop control panel for publishing products across multiple marketplaces with AI-powered optimization.
+            Yapay zeka destekli optimizasyon ile ürünlerinizi birden fazla pazaryerinde yayınlamak için tek durak kontrol paneliniz.
           </p>
           <div className="flex items-center space-x-4">
             <Button variant="accent" size="lg" asChild>
               <Link to="/products/new">
                 <Plus className="w-5 h-5 mr-2" />
-                Create New Product
+                Yeni Ürün Oluştur
               </Link>
             </Button>
             <Button variant="glass" size="lg">
               <Eye className="w-5 h-5 mr-2" />
-              Watch Demo
+              Demo İzle
             </Button>
           </div>
         </div>
@@ -96,52 +96,52 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            <CardTitle className="text-sm font-medium">Toplam Ürün</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
             <p className="text-xs text-muted-foreground">
-              +3 from last month
+              Son ay için +3
             </p>
           </CardContent>
         </Card>
         
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <CardTitle className="text-sm font-medium">Yayınlanmış</CardTitle>
             <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">18</div>
             <p className="text-xs text-muted-foreground">
-              75% success rate
+              75% başarı oranı
             </p>
           </CardContent>
         </Card>
         
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Toplam Sipariş</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">127</div>
             <p className="text-xs text-muted-foreground">
-              +12% from last week
+              Son hafta için +12%
             </p>
           </CardContent>
         </Card>
         
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Gelir</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$3,247</div>
             <p className="text-xs text-muted-foreground">
-              +8% from last month
+              Son ay için +8%
             </p>
           </CardContent>
         </Card>
@@ -152,8 +152,8 @@ export default function Dashboard() {
         {/* Recent Products */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Recent Products</h2>
-            <Button variant="outline" size="sm">View All</Button>
+            <h2 className="text-xl font-semibold">Son Ürünler</h2>
+            <Button variant="outline" size="sm">Tümünü Görüntüle</Button>
           </div>
           
           <div className="space-y-4">
@@ -190,8 +190,8 @@ export default function Dashboard() {
         {/* Marketplace Status */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Marketplace Status</h2>
-            <Button variant="outline" size="sm">Manage</Button>
+            <h2 className="text-xl font-semibold">Pazaryerleri Durumu</h2>
+            <Button variant="outline" size="sm">Yönet</Button>
           </div>
           
           <div className="space-y-4">

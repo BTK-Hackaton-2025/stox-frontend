@@ -17,28 +17,28 @@ import type { RegisterRequest } from '@/types/auth';
 const registerSchema = z.object({
   firstName: z
     .string()
-    .min(1, 'First name is required')
-    .min(2, 'First name must be at least 2 characters')
-    .max(50, 'First name must not exceed 50 characters'),
+    .min(1, 'Ad gereklidir')
+    .min(2, 'Ad en az 2 karakter olmalıdır')
+    .max(50, 'Ad en fazla 50 karakter olmalıdır'),
   lastName: z
     .string()
-    .min(1, 'Last name is required')
-    .min(2, 'Last name must be at least 2 characters')
-    .max(50, 'Last name must not exceed 50 characters'),
+    .min(1, 'Soyad gereklidir')
+    .min(2, 'Soyad en az 2 karakter olmalıdır')
+    .max(50, 'Soyad en fazla 50 karakter olmalıdır'),
   email: z
     .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+    .min(1, 'Email gereklidir')
+    .email('Lütfen geçerli bir email adresi giriniz'),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/\d/, 'Password must contain at least one digit')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
+    .min(8, 'Şifre en az 8 karakter olmalıdır')
+    .regex(/[A-Z]/, 'Şifre en az bir büyük harf içermelidir')
+    .regex(/[a-z]/, 'Şifre en az bir küçük harf içermelidir')
+    .regex(/\d/, 'Şifre en az bir sayı içermelidir')
+    .regex(/[^A-Za-z0-9]/, 'Şifre en az bir özel karakter içermelidir'),
+  confirmPassword: z.string().min(1, 'Lütfen şifrenizi onaylayın'),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Şifreler eşleşmiyor",
   path: ["confirmPassword"],
 });
 
@@ -136,9 +136,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">Hesap Oluştur</CardTitle>
         <CardDescription className="text-center">
-          Enter your information to create your account
+          Hesap oluşturmak için bilgilerinizi giriniz
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -146,12 +146,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
           {/* First Name and Last Name */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">Ad</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="firstName"
-                  placeholder="John"
+                  placeholder="Adınız"
                   className="pl-10"
                   {...register('firstName')}
                   disabled={isSubmitting || isLoading}
@@ -162,12 +162,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">Soyad</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="lastName"
-                  placeholder="Doe"
+                  placeholder="Soyadınız"
                   className="pl-10"
                   {...register('lastName')}
                   disabled={isSubmitting || isLoading}
@@ -187,7 +187,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
               <Input
                 id="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="email@mail.com"
                 className="pl-10"
                 {...register('email')}
                 disabled={isSubmitting || isLoading}
@@ -200,13 +200,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
 
           {/* Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Şifre</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Create a strong password"
+                placeholder="Şifrenizi giriniz"
                 className="pl-10 pr-12 [&::-ms-reveal]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
                 autoComplete="new-password"
                 {...register('password')}
@@ -230,22 +230,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
             
             {/* Password Requirements */}
             <div className="text-xs text-muted-foreground space-y-1">
-              <p>Password must contain:</p>
+              <p>Şifre en az 8 karakter olmalıdır:</p>
               <ul className="list-disc list-inside space-y-0.5 ml-2">
                 <li className={watchPassword.length >= 8 ? 'text-green-600' : ''}>
-                  At least 8 characters
+                  En az 8 karakter
                 </li>
                 <li className={/[A-Z]/.test(watchPassword) ? 'text-green-600' : ''}>
-                  One uppercase letter
+                  En az bir büyük harf
                 </li>
                 <li className={/[a-z]/.test(watchPassword) ? 'text-green-600' : ''}>
-                  One lowercase letter
+                  En az bir küçük harf
                 </li>
                 <li className={/\d/.test(watchPassword) ? 'text-green-600' : ''}>
-                  One number
+                  En az bir sayı
                 </li>
                 <li className={/[^A-Za-z0-9]/.test(watchPassword) ? 'text-green-600' : ''}>
-                  One special character
+                  En az bir özel karakter
                 </li>
               </ul>
             </div>
@@ -272,13 +272,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
 
           {/* Confirm Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">Şifre Onayla</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm your password"
+                placeholder="Şifrenizi onaylayın"
                 className="pl-10 pr-12 [&::-ms-reveal]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
                 autoComplete="new-password"
                 {...register('confirmPassword')}
@@ -320,10 +320,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
             {isSubmitting || isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                Hesap oluşturuluyor...
               </>
             ) : (
-              'Create Account'
+              'Hesap Oluştur'
             )}
           </Button>
 
@@ -331,7 +331,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
           {onSwitchToLogin && (
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
-                Already have an account?{' '}
+                Hesabınız var mı?{' '}
                 <Button
                   type="button"
                   variant="link"
@@ -339,7 +339,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
                   onClick={onSwitchToLogin}
                   disabled={isSubmitting || isLoading}
                 >
-                  Sign in
+                  Giriş Yap
                 </Button>
               </p>
             </div>

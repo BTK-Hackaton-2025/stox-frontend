@@ -37,23 +37,23 @@ interface ChatInterfaceProps {
 const suggestionPrompts = [
   {
     icon: <TrendingUp className="w-4 h-4" />,
-    title: "Market Analysis",
-    prompt: "Analyze current market trends for electronics category"
+    title: "Market Analizi",
+    prompt: "Elektronik piyasasının güncel trendlerini analiz edebilir misiniz?"
   },
   {
     icon: <Package className="w-4 h-4" />,
-    title: "Product Optimization",
-    prompt: "Help me optimize my product listings for better visibility"
+    title: "Ürün Optimizasyonu",
+    prompt: "Ürün listelerimi daha iyi görünürlüğe sahip hale getirebilir misiniz?"
   },
   {
     icon: <DollarSign className="w-4 h-4" />,
-    title: "Pricing Strategy",
-    prompt: "What's the best pricing strategy for competing products?"
+    title: "Fiyat Önerisi",
+    prompt: "Rekabet eden ürünler için en iyi fiyat stratejisi nedir?"
   },
   {
     icon: <BarChart3 className="w-4 h-4" />,
-    title: "Performance Report",
-    prompt: "Generate a performance report for my top products"
+    title: "Performans Raporu",
+    prompt: "En iyi ürünlerim için bir performans raporu oluşturabilir misiniz?"
   }
 ];
 
@@ -61,7 +61,7 @@ export default function ChatInterface({
   messages,
   onSendMessage,
   isLoading = false,
-  conversationTitle = "New Conversation"
+  conversationTitle = "Yeni Konuşma"
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const [rows, setRows] = useState(1);
@@ -174,7 +174,7 @@ export default function ChatInterface({
               <Sparkles className="w-4 h-4 text-blue-500" />
               {conversationTitle}
             </h3>
-            <p className="text-sm text-muted-foreground">AI-powered multi-market assistant</p>
+            <p className="text-sm text-muted-foreground">Kişisel Çoklu Market AI Aracı</p>
           </div>
           <Badge variant="outline" className="text-xs">
             GPT-4 Turbo
@@ -190,10 +190,9 @@ export default function ChatInterface({
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                 <Bot className="w-8 h-8 text-white" />
               </div>
-              <h3 className="font-semibold mb-2">Welcome to Stox AI</h3>
+              <h3 className="font-semibold mb-2">Stox AI'ye Hoş Geldiniz</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Your personal multi-market AI agent. Ask me anything about market trends, 
-                product optimization, pricing strategies, or general business questions.
+                Kişisel Çoklu Market AI Aracı. Market trendleri, ürün optimizasyonu, fiyat stratejileri ve genel iş soruları hakkında herhangi bir şey sorabilirsiniz.
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
@@ -239,7 +238,7 @@ export default function ChatInterface({
                       <div className="w-2 h-2 bg-current rounded-full animate-pulse animation-delay-200" />
                       <div className="w-2 h-2 bg-current rounded-full animate-pulse animation-delay-400" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Stox AI is thinking...</span>
+                    <span className="text-sm text-muted-foreground">Stox AI düşünüyor...</span>
                   </div>
                 </CardContent>
               </Card>
@@ -257,7 +256,7 @@ export default function ChatInterface({
               value={input}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              placeholder="Ask Stox AI anything about your business..."
+              placeholder="Stox AI'ye herhangi bir şey sorabilirsiniz..."
               className="resize-none pr-12 min-h-[44px]"
               rows={rows}
               disabled={isLoading}
@@ -274,7 +273,7 @@ export default function ChatInterface({
         </div>
         
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          Stox AI can make mistakes. Please verify important information.
+          Stox AI hatalar yapabilir. Lütfen önemli bilgileri doğrulayın.
         </p>
       </div>
     </div>
