@@ -207,7 +207,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Create a strong password"
-                className="pl-10 pr-10"
+                className="pl-10 pr-12 [&::-ms-reveal]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+                autoComplete="new-password"
                 {...register('password')}
                 disabled={isSubmitting || isLoading}
               />
@@ -215,7 +216,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-10"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isSubmitting || isLoading}
               >
@@ -278,7 +279,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="Confirm your password"
-                className="pl-10 pr-10"
+                className="pl-10 pr-12 [&::-ms-reveal]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+                autoComplete="new-password"
                 {...register('confirmPassword')}
                 disabled={isSubmitting || isLoading}
               />
@@ -286,7 +288,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-10"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={isSubmitting || isLoading}
               >

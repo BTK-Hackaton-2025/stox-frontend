@@ -192,11 +192,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
+                <DropdownMenuContent className="w-64 bg-background border border-border shadow-lg" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal p-4">
                     <div className="flex flex-col space-y-2">
                       <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium leading-none">
+                        <p className="text-sm font-semibold leading-none text-foreground">
                           {user?.firstName} {user?.lastName}
                         </p>
                         <Badge variant={getRoleBadgeVariant(user?.role || 'user')} className="text-xs">
@@ -211,25 +211,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <DropdownMenuSeparator />
                   
                   {/* Profile */}
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                  <DropdownMenuItem className="cursor-pointer hover:bg-accent">
+                    <User className="mr-2 h-4 w-4 text-foreground" />
+                    <span className="text-foreground font-medium">Profile</span>
                   </DropdownMenuItem>
                   
                   {/* Settings */}
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
+                    <Link to="/settings" className="flex items-center w-full">
+                      <Settings className="mr-2 h-4 w-4 text-foreground" />
+                      <span className="text-foreground font-medium">Settings</span>
                     </Link>
                   </DropdownMenuItem>
                   
                   {/* Admin Panel (only for admins) */}
                   {user?.role === 'admin' && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin">
-                        <Shield className="mr-2 h-4 w-4" />
-                        <span>Admin Panel</span>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
+                      <Link to="/admin" className="flex items-center w-full">
+                        <Shield className="mr-2 h-4 w-4 text-foreground" />
+                        <span className="text-foreground font-medium">Admin Panel</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -237,9 +237,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <DropdownMenuSeparator />
                   
                   {/* Logout */}
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <DropdownMenuItem 
+                    onClick={handleLogout} 
+                    className="text-destructive hover:bg-destructive/10 cursor-pointer"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                    <span className="font-medium">Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
