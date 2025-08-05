@@ -38,20 +38,20 @@ const recentProducts = [
 const marketplaces = [
   {
     name: "Amazon",
-    logo: "/api/placeholder/32/32",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
     status: "published" as const,
     url: "https://amazon.com/dp/B08XYZ123",
     lastSync: "5 minutes ago"
   },
   {
     name: "Trendyol",
-    logo: "/api/placeholder/32/32",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/c/c7/Trendyol_logo.svg",
     status: "pending" as const,
     lastSync: "2 minutes ago"
   },
   {
     name: "Hepsiburada",
-    logo: "/api/placeholder/32/32",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/2/20/Hepsiburada_logo_official.svg",
     status: "error" as const,
     error: "Invalid product category. Please review and resubmit.",
     lastSync: "10 minutes ago"
