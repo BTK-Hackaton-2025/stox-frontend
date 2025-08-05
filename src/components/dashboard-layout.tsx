@@ -14,7 +14,8 @@ import {
   X,
   User,
   LogOut,
-  Shield
+  Shield,
+  Bot
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ interface DashboardLayoutProps {
 }
 
 const navigation = [
+  { name: 'Stox AI', href: '/ai', icon: Bot },
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Orders', href: '/orders', icon: ShoppingCart },

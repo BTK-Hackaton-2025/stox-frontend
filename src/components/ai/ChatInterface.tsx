@@ -1,0 +1,282 @@
+import React, { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Send, 
+  Bot, 
+  User, 
+  Copy, 
+  ThumbsUp, 
+  ThumbsDown,
+  RotateCcw,
+  Sparkles,
+  TrendingUp,
+  Package,
+  DollarSign,
+  BarChart3
+} from "lucide-react";
+
+interface Message {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: string;
+  suggestions?: string[];
+}
+
+interface ChatInterfaceProps {
+  messages: Message[];
+  onSendMessage: (message: string) => void;
+  isLoading?: boolean;
+  conversationTitle?: string;
+}
+
+const suggestionPrompts = [
+  {
+    icon: <TrendingUp className="w-4 h-4" />,
+    title: "Market Analysis",
+    prompt: "Analyze current market trends for electronics category"
+  },
+  {
+    icon: <Package className="w-4 h-4" />,
+    title: "Product Optimization",
+    prompt: "Help me optimize my product listings for better visibility"
+  },
+  {
+    icon: <DollarSign className="w-4 h-4" />,
+    title: "Pricing Strategy",
+    prompt: "What's the best pricing strategy for competing products?"
+  },
+  {
+    icon: <BarChart3 className="w-4 h-4" />,
+    title: "Performance Report",
+    prompt: "Generate a performance report for my top products"
+  }
+];
+
+export default function ChatInterface({
+  messages,
+  onSendMessage,
+  isLoading = false,
+  conversationTitle = "New Conversation"
+}: ChatInterfaceProps) {
+  const [input, setInput] = useState("");
+  const [rows, setRows] = useState(1);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSend = () => {
+    if (input.trim() && !isLoading) {
+      onSendMessage(input.trim());
+      setInput("");
+      setRows(1);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setInput(value);
+    
+    // Auto-resize textarea
+    const newRows = Math.min(Math.max(1, value.split('\n').length), 5);
+    setRows(newRows);
+  };
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const MessageBubble = ({ message }: { message: Message }) => (
+    <div className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      {message.role === 'assistant' && (
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <Bot className="w-4 h-4 text-white" />
+        </div>
+      )}
+      
+      <div className={`max-w-[80%] ${message.role === 'user' ? 'order-1' : ''}`}>
+        <Card className={`${
+          message.role === 'user' 
+            ? 'bg-primary text-primary-foreground' 
+            : 'bg-muted/50'
+        }`}>
+          <CardContent className="p-3">
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              <p className="mb-0 whitespace-pre-wrap">{message.content}</p>
+            </div>
+            
+            {message.suggestions && message.suggestions.length > 0 && (
+              <div className="mt-3 space-y-1">
+                {message.suggestions.map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={() => onSendMessage(suggestion)}
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+          <span>{message.timestamp}</span>
+          {message.role === 'assistant' && (
+            <>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Copy className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <ThumbsUp className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <ThumbsDown className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <RotateCcw className="w-3 h-3" />
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+      
+      {message.role === 'user' && (
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center">
+          <User className="w-4 h-4" />
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 border-b border-border/50 bg-background/95 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-blue-500" />
+              {conversationTitle}
+            </h3>
+            <p className="text-sm text-muted-foreground">AI-powered multi-market assistant</p>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            GPT-4 Turbo
+          </Badge>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        <div className="space-y-4">
+          {messages.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <Bot className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="font-semibold mb-2">Welcome to Stox AI</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Your personal multi-market AI agent. Ask me anything about market trends, 
+                product optimization, pricing strategies, or general business questions.
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                {suggestionPrompts.map((suggestion, index) => (
+                  <Card 
+                    key={index}
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => onSendMessage(suggestion.prompt)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          {suggestion.icon}
+                        </div>
+                        <div className="text-left">
+                          <h4 className="font-medium text-sm">{suggestion.title}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {suggestion.prompt}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : (
+            messages.map((message) => (
+              <MessageBubble key={message.id} message={message} />
+            ))
+          )}
+          
+          {isLoading && (
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <Card className="bg-muted/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
+                      <div className="w-2 h-2 bg-current rounded-full animate-pulse animation-delay-200" />
+                      <div className="w-2 h-2 bg-current rounded-full animate-pulse animation-delay-400" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Stox AI is thinking...</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Input */}
+      <div className="p-4 border-t border-border/50 bg-background/95 backdrop-blur-sm">
+        <div className="flex items-end gap-3">
+          <div className="flex-1 relative">
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask Stox AI anything about your business..."
+              className="resize-none pr-12 min-h-[44px]"
+              rows={rows}
+              disabled={isLoading}
+            />
+            <Button
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading}
+              className="absolute right-2 bottom-2 h-8 w-8 p-0"
+              size="sm"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          Stox AI can make mistakes. Please verify important information.
+        </p>
+      </div>
+    </div>
+  );
+}

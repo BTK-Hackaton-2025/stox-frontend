@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import AI from "./pages/AI";
 import NewProduct from "./pages/NewProduct";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/dashboard-layout";
@@ -31,6 +32,13 @@ const App = () => (
               <ProtectedRoute>
                 <DashboardLayout>
                   <Dashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/ai" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <AI />
                 </DashboardLayout>
               </ProtectedRoute>
             } />

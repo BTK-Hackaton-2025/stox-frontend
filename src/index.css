@@ -351,4 +351,13 @@ Inspired by Stripe, Linear, and Vercel aesthetics.
     transform: translateZ(0);
     will-change: transform;
   }
+
+  /* Animation Delay Utilities */
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
 }
