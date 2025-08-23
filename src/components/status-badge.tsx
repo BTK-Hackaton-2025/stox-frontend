@@ -11,22 +11,22 @@ interface StatusBadgeProps {
 
 const statusConfig = {
   published: {
-    label: "Published",
+    label: "Yayınlanmış",
     icon: CheckCircle,
     className: "status-published",
   },
   pending: {
-    label: "Pending",
+    label: "Beklemede",
     icon: Clock,
     className: "status-pending",
   },
   error: {
-    label: "Error",
+    label: "Hata",
     icon: AlertCircle,
     className: "status-error",
   },
   draft: {
-    label: "Draft",
+    label: "Taslak",
     icon: Circle,
     className: "status-draft",
   },

@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuthState } from "@/contexts/AuthContext";
 import FloatingCube from "@/components/floating-cube";
 import { FileUpload } from "@/components/ui/file-upload";
 import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
@@ -11,6 +12,8 @@ import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { cn } from "@/lib/utils";
 
 const Landing = () => {
+  const { isAuthenticated } = useAuthState();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
 
@@ -18,20 +21,36 @@ const Landing = () => {
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="Stox" className="h-12 w-auto" />
-                <span className="text-xl font-gotham-black">stox</span>
-              </div>
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Stox" className="h-12 w-auto" />
+              <span className="text-xl font-gotham-black">stox</span>
+            </div>
             <div className="flex items-center gap-4">
-              <Link to="/dashboard">
-                <Button variant="ghost">Panele Git</Button>
-              </Link>
-              <Link to="/products/new">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
-                  Hemen Başla
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                // Show dashboard access for authenticated users
+                <Link to="/dashboard">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
+                    Dashboard
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                // Show authentication options for unauthenticated users
+                <>
+                  <Link to="/auth">
+                    <Button variant="ghost">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Giriş Yap
+                    </Button>
+                  </Link>
+                  <Link to="/auth">
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
+                      Hemen Başla
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -45,29 +64,29 @@ const Landing = () => {
               <div className="space-y-4">
                 <Badge variant="secondary" className="w-fit">
                   <Sparkles className="h-3 w-3 mr-1" />
-                  AI-Destekli Pazaryeriniz
+                  Yapay Zeka Destekli Pazaryeriniz
                 </Badge>
                 <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
                   <span className="bg-gradient-primary bg-clip-text text-transparent">
                     Tek tıkla{" "}
                   </span>
-                    Her Yerden Satış Yapın
+                    Her Yerden Satış Yapın!
                 </h1>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                Bir fotoğraf yükleyin; yapay zeka mükemmelleştirip SEO uyumlu metinler oluştursun, ardından anında Amazon, Trendyol ve Hepsiburada'da yayınlasın. E-ticaretin geleceği, satış için tasarlandı.
+                Bir fotoğraf yükleyin; yapay zeka mükemmelleştirip SEO uyumlu metinler oluştursun, ardından anında Amazon, Trendyol ve Hepsiburada'da yayınlasın. E-ticaretin geleceği, satış için tasarlandı!
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/products/new">
                                       <Button className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto" size="xl">
-                    Hemen Satışa Başla
+                    Hemen Satışa Başla!
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
                 <Link to="/dashboard">
                   <Button variant="outline" size="xl" className="w-full sm:w-auto">
-                    Panele Git
+                    Panele Git!
                   </Button>
                 </Link>
               </div>
@@ -156,7 +175,7 @@ const Landing = () => {
                     as="button"
                     className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white"
                   >
-                    Hemen Deneyin →
+                    Hemen Deneyin! →
                   </CardItem>
                   <CardItem
                     translateZ={20}
@@ -164,7 +183,7 @@ const Landing = () => {
                     as="button"
                     className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
                   >
-                    Üye Ol
+                    Üye Ol!
                   </CardItem>
                 </div>
               </CardBody>
@@ -204,7 +223,7 @@ const Landing = () => {
 
                   <div className="flex items-center gap-3">
                     <Button size="sm" className="px-4 py-2 bg-orange-600 hover:bg-orange-700">
-                    Hemen Satışa Başla
+                    Hemen Satışa Başla!
                     </Button>
                     <span className="rounded-md bg-zinc-700 px-3 py-1 text-xs font-medium text-white">
                     12,499 TL
@@ -249,7 +268,7 @@ const Landing = () => {
 
                   <div className="flex items-center gap-3">
                     <Button size="sm" className="px-4 py-2 bg-orange-600 hover:bg-orange-700">
-                    Hemen Satışa Başla
+                    Hemen Satışa Başla! 
                     </Button>
                     <span className="rounded-md bg-zinc-700 px-3 py-1 text-xs font-medium text-white">
                     11,999 TL
@@ -290,7 +309,7 @@ const Landing = () => {
 
                   <div className="flex items-center gap-3">
                     <Button size="sm" className="px-4 py-2 bg-orange-600 hover:bg-orange-700">
-                    Hemen Satışa Başla
+                    Hemen Satışa Başla!
                     </Button>
                     <span className="rounded-md bg-zinc-700 px-3 py-1 text-xs font-medium text-white">
                     12,999 TL
@@ -319,7 +338,7 @@ const Landing = () => {
             </p>
             <Link to="/products/new">
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground mt-5" size="xl">
-              Ücretsiz İlanını Oluştur
+              Ücretsiz İlanını Oluştur!
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
