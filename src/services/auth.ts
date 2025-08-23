@@ -35,6 +35,11 @@ class AuthService {
         this.storeTokens(response.tokenData);
       }
       
+      // Store user data after successful registration
+      if (response.user) {
+        this.storeUserData(response.user);
+      }
+      
       return response;
     } catch (error: unknown) {
       throw this.handleAuthError(error);
@@ -51,6 +56,11 @@ class AuthService {
       // Store tokens after successful login
       if (response.tokenData) {
         this.storeTokens(response.tokenData);
+      }
+      
+      // Store user data after successful login
+      if (response.user) {
+        this.storeUserData(response.user);
       }
       
       return response;
@@ -157,7 +167,7 @@ class AuthService {
   /**
    * Store user data separately
    */
-  storeUser(userData: User): void {
+  storeUserData(userData: User): void {
     localStorage.setItem('userData', JSON.stringify(userData));
   }
 
