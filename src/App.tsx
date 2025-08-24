@@ -11,7 +11,7 @@ import AI from "./pages/AI";
 import NewProduct from "./pages/NewProduct";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import DashboardLayout from "./components/dashboard-layout";
+import DashboardLayoutAnimated from "./components/dashboard-layout-animated";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -31,72 +31,72 @@ const App = () => (
             {/* Protected Routes */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <DashboardLayout>
+                <DashboardLayoutAnimated>
                   <Dashboard />
-                </DashboardLayout>
+                </DashboardLayoutAnimated>
               </ProtectedRoute>
             } />
             <Route path="/ai" element={
               <ProtectedRoute>
-                <DashboardLayout>
+                <DashboardLayoutAnimated>
                   <AI />
-                </DashboardLayout>
+                </DashboardLayoutAnimated>
               </ProtectedRoute>
             } />
             <Route path="/products/new" element={
               <ProtectedRoute>
-                <DashboardLayout>
+                <DashboardLayoutAnimated>
                   <NewProduct />
-                </DashboardLayout>
+                </DashboardLayoutAnimated>
               </ProtectedRoute>
             } />
             <Route path="/products" element={
               <ProtectedRoute>
-                <DashboardLayout>
+                <DashboardLayoutAnimated>
                   <div className="text-center py-12">
                     <h1 className="text-2xl font-bold mb-4">Products</h1>
                     <p className="text-muted-foreground">Product management coming soon...</p>
                   </div>
-                </DashboardLayout>
+                </DashboardLayoutAnimated>
               </ProtectedRoute>
             } />
             <Route path="/orders" element={
               <ProtectedRoute>
-                <DashboardLayout>
+                <DashboardLayoutAnimated>
                   <div className="text-center py-12">
                     <h1 className="text-2xl font-bold mb-4">Orders</h1>
                     <p className="text-muted-foreground">Order management coming soon...</p>
                   </div>
-                </DashboardLayout>
+                </DashboardLayoutAnimated>
               </ProtectedRoute>
             } />
             <Route path="/reports" element={
               <ProtectedRoute>
-                <DashboardLayout>
+                <DashboardLayoutAnimated>
                   <div className="text-center py-12">
                     <h1 className="text-2xl font-bold mb-4">Reports</h1>
                     <p className="text-muted-foreground">Analytics dashboard coming soon...</p>
                   </div>
-                </DashboardLayout>
+                </DashboardLayoutAnimated>
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
               <ProtectedRoute>
-                <DashboardLayout>
+                <DashboardLayoutAnimated>
                   <Settings />
-                </DashboardLayout>
+                </DashboardLayoutAnimated>
               </ProtectedRoute>
             } />
             
             {/* Admin-only Routes Example */}
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
-                <DashboardLayout>
+                <DashboardLayoutAnimated>
                   <div className="text-center py-12">
                     <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
                     <p className="text-muted-foreground">Admin tools coming soon...</p>
                   </div>
-                </DashboardLayout>
+                </DashboardLayoutAnimated>
               </ProtectedRoute>
             } />
             

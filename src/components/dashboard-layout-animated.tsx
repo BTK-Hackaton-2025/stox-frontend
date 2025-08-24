@@ -7,11 +7,8 @@ import {
   BarChart3, 
   Settings,
   Plus,
-  Upload,
   Bell,
   Search,
-  Menu,
-  X,
   User,
   LogOut,
   Shield,
@@ -31,21 +28,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/animated-sidebar";
+import { motion } from "motion/react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const navigation = [
-  { name: 'Stox AI', href: '/ai', icon: Bot },
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Products', href: '/products', icon: Package },
-  { name: 'Orders', href: '/orders', icon: ShoppingCart },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayoutAnimated({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -76,94 +66,186 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   };
 
+  // Navigation links for animated sidebar
+  const navigationLinks = [
+    {
+      label: "Stox AI",
+      href: "/ai",
+      icon: <Bot className="h-5 w-5 shrink-0" />,
+    },
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+      icon: <LayoutDashboard className="h-5 w-5 shrink-0" />,
+    },
+    {
+      label: "Products",
+      href: "/products",
+      icon: <Package className="h-5 w-5 shrink-0" />,
+    },
+    {
+      label: "Orders",
+      href: "/orders",
+      icon: <ShoppingCart className="h-5 w-5 shrink-0" />,
+    },
+    {
+      label: "Reports",
+      href: "/reports",
+      icon: <BarChart3 className="h-5 w-5 shrink-0" />,
+    },
+    {
+      label: "Settings",
+      href: "/settings",
+      icon: <Settings className="h-5 w-5 shrink-0" />,
+    },
+  ];
+
+  // Logo components for the animated sidebar
+  const Logo = () => {
+    return (
+      <Link
+        to="/"
+        className="relative z-20 flex items-center space-x-3 py-1 text-sm font-normal"
+      >
+        <img src="/logo.png" alt="Stox" className="h-8 w-auto" />
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="font-gotham-black text-xl whitespace-pre text-foreground"
+        >
+          Stox
+        </motion.span>
+      </Link>
+    );
+  };
+
+  const LogoIcon = () => {
+    return (
+      <Link
+        to="/"
+        className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal"
+      >
+        <img src="/logo.png" alt="Stox" className="h-8 w-auto" />
+      </Link>
+    );
+  };
+
+  // Custom SidebarLink component that handles active state
+  const CustomSidebarLink = ({ link }: { link: typeof navigationLinks[0] }) => {
+    const active = isActive(link.href);
+    
+    return (
+      <Link
+        to={link.href}
+        className={cn(
+          "flex items-center justify-start gap-2 group/sidebar py-2 px-2 rounded-lg transition-all duration-200",
+          active 
+            ? "bg-primary/10 text-primary border border-primary/20" 
+            : "hover:bg-accent hover:text-accent-foreground"
+        )}
+      >
+        <div className={cn(
+          "transition-colors",
+          active ? "text-primary" : "text-muted-foreground"
+        )}>
+          {link.icon}
+        </div>
+        <motion.span
+          animate={{
+            display: sidebarOpen ? "inline-block" : "none",
+            opacity: sidebarOpen ? 1 : 0,
+          }}
+          className={cn(
+            "text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0",
+            active ? "font-medium text-primary" : "text-foreground"
+          )}
+        >
+          {link.label}
+        </motion.span>
+      </Link>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background-soft flex">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border/50 transition-transform duration-300 ease-smooth lg:relative lg:translate-x-0",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="flex h-full flex-col">
-          {/* Logo */}
-          <div className="flex items-center justify-between p-6 border-b border-border/50">
-            <Link to="/" className="flex items-center space-x-3">
-              <img src="/logo.png" alt="Stox" className="h-10 w-auto" />
-              <span className="text-xl font-gotham-black">Stox</span>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="w-5 h-5" />
-            </Button>
+      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen}>
+        <SidebarBody className="justify-between gap-10 bg-background border-r border-border/50">
+          <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
+            {sidebarOpen ? <Logo /> : <LogoIcon />}
+            <div className="mt-8 flex flex-col gap-2">
+              {navigationLinks.map((link, idx) => (
+                <CustomSidebarLink key={idx} link={link} />
+              ))}
+            </div>
           </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group",
-                    active
-                      ? "bg-primary/10 text-primary border border-primary/20 shadow-soft"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}
-                >
-                  <Icon className={cn(
-                    "w-5 h-5 mr-3 transition-colors",
-                    active ? "text-primary" : "text-muted-foreground group-hover:text-accent-foreground"
-                  )} />
-                  {item.name}
+          
+          {/* User section at bottom */}
+          <div className="border-t border-border/50 pt-4">
+            {/* Quick action button */}
+            <div className="mb-4">
+              <Button 
+                className={cn(
+                  "bg-primary hover:bg-primary/90 text-primary-foreground",
+                  sidebarOpen ? "w-full" : "w-8 h-8 p-0"
+                )}
+                size={sidebarOpen ? "sm" : "icon"}
+                asChild
+              >
+                <Link to="/products/new" className="flex items-center justify-center">
+                  <Plus className={cn("w-4 h-4", sidebarOpen && "mr-2")} />
+                  <motion.span
+                    animate={{
+                      display: sidebarOpen ? "inline-block" : "none",
+                      opacity: sidebarOpen ? 1 : 0,
+                    }}
+                    className="whitespace-nowrap"
+                  >
+                    Yeni Ürün
+                  </motion.span>
                 </Link>
-              );
-            })}
-          </nav>
-
-          {/* Quick actions */}
-          <div className="p-4 border-t border-border/50">
-            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" size="lg" asChild>
-              <Link to="/products/new">
-                <Plus className="w-4 h-4 mr-2" />
-                Yeni Ürün
-              </Link>
-            </Button>
+              </Button>
+            </div>
+            
+            {/* User info */}
+            <div className={cn(
+              "flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors",
+              !sidebarOpen && "justify-center"
+            )}>
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarImage src="" alt={user?.firstName || 'User'} />
+                <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <motion.div 
+                className="flex flex-col min-w-0 overflow-hidden"
+                animate={{
+                  width: sidebarOpen ? "auto" : "0px",
+                  opacity: sidebarOpen ? 1 : 0,
+                }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                style={{ display: sidebarOpen ? "flex" : "none" }}
+              >
+                <span className="text-sm font-medium text-foreground truncate whitespace-nowrap">
+                  {user?.firstName} {user?.lastName}
+                </span>
+                <span className="text-xs text-muted-foreground truncate whitespace-nowrap">
+                  {user?.email}
+                </span>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </div>
+        </SidebarBody>
+      </Sidebar>
 
       {/* Main content */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 transition-all duration-300 ease-smooth">
         {/* Top bar */}
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
           <div className="flex items-center justify-between px-6 py-4">
-            {/* Left side - Mobile menu + Search */}
+            {/* Left side - Search */}
             <div className="flex items-center flex-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden mr-4"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-              
-              {/* Search - Always start from left on desktop */}
+              {/* Search */}
               <div className="relative w-80 max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input

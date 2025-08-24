@@ -15,14 +15,7 @@ import {
   Settings
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
-interface ChatConversation {
-  id: string;
-  title: string;
-  lastMessage: string;
-  timestamp: string;
-  category: 'market' | 'product' | 'general';
-}
+import { type ChatConversation } from "@/services/ai";
 
 interface ChatSidebarProps {
   conversations: ChatConversation[];
@@ -38,6 +31,8 @@ const getCategoryIcon = (category: string) => {
       return <TrendingUp className="w-4 h-4" />;
     case 'product':
       return <ShoppingCart className="w-4 h-4" />;
+    case 'seo':
+      return <BarChart3 className="w-4 h-4" />;
     default:
       return <MessageSquare className="w-4 h-4" />;
   }
@@ -49,8 +44,10 @@ const getCategoryColor = (category: string) => {
       return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
     case 'product':
       return 'bg-green-500/10 text-green-500 border-green-500/20';
-    default:
+    case 'seo':
       return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+    default:
+      return 'bg-muted/50 text-muted-foreground border-border';
   }
 };
 

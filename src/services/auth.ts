@@ -1,4 +1,21 @@
 // Authentication Service Functions
+//
+// This service provides comprehensive authentication functionality including:
+// - User registration and login
+// - JWT token management with automatic refresh
+// - Token validation and expiry checking
+// - Secure token storage in localStorage
+//
+// REFRESH TOKEN MECHANISM:
+// - Tokens are automatically refreshed when they expire or are about to expire
+// - API client automatically retries failed requests with refreshed tokens
+// - AuthContext periodically checks and refreshes tokens in the background
+// - Cross-tab synchronization ensures consistent auth state
+//
+// USAGE:
+// - Use authService for direct authentication operations
+// - Use useAuth() hook in React components for auth state and actions
+// - API calls automatically handle token refresh via apiClient
 
 import { apiClient } from '@/lib/api';
 import type {
@@ -8,6 +25,8 @@ import type {
   LoginResponse,
   ValidateTokenRequest,
   ValidateTokenResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
   ProfileResponse,
   User,
   TokenData
@@ -36,8 +55,8 @@ class AuthService {
       }
       
       // Store user data after successful registration
-      if (response.user) {
-        this.storeUserData(response.user);
+      if (response.userData) {
+        this.storeUserData(response.userData);
       }
       
       return response;
@@ -59,8 +78,8 @@ class AuthService {
       }
       
       // Store user data after successful login
-      if (response.user) {
-        this.storeUserData(response.user);
+      if (response.userData) {
+        this.storeUserData(response.userData);
       }
       
       return response;
@@ -175,6 +194,9 @@ class AuthService {
    * Clear all stored authentication data
    */
   private clearTokens(): void {
+    console.log('Clearing tokens from AuthService');
+    console.trace('Token clear call stack');
+    
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('tokenExpiry');
@@ -192,6 +214,34 @@ class AuthService {
   }
 
   /**
+   * Refresh access token using refresh token
+   */
+  async refreshToken(): Promise<RefreshTokenResponse> {
+    const refreshToken = this.getStoredRefreshToken();
+    
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    try {
+      const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh', {
+        refreshToken
+      });
+      
+      // Store new tokens after successful refresh
+      if (response.success && response.tokenData) {
+        this.storeTokens(response.tokenData);
+      }
+      
+      return response;
+    } catch (error: unknown) {
+      // If refresh token is invalid, clear all tokens
+      this.clearTokens();
+      throw this.handleAuthError(error);
+    }
+  }
+
+  /**
    * Auto-refresh token if needed
    */
   async refreshTokenIfNeeded(): Promise<boolean> {
@@ -206,14 +256,8 @@ class AuthService {
     }
 
     try {
-      // Note: This would typically call a refresh endpoint
-      // For now, we'll validate the current token
-      const currentToken = this.getStoredToken();
-      if (currentToken) {
-        await this.validateToken(currentToken);
-        return true;
-      }
-      return false;
+      await this.refreshToken();
+      return true;
     } catch {
       this.clearTokens();
       return false;
@@ -224,8 +268,21 @@ class AuthService {
    * Handle authentication errors consistently
    */
   private handleAuthError(error: unknown): Error {
+    // Only clear tokens for specific auth errors, not network errors
     if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
-      this.clearTokens();
+      // Check if this is a real auth error or just a network/server issue
+      if (error && typeof error === 'object' && 'message' in error) {
+        const message = String(error.message).toLowerCase();
+        if (message.includes('token') || message.includes('unauthorized') || message.includes('expired')) {
+          console.log('Clearing tokens due to authentication error:', message);
+          this.clearTokens();
+        } else {
+          console.warn('Got 401 but keeping tokens - might be network issue:', message);
+        }
+      } else {
+        // Generic 401, be conservative and clear tokens
+        this.clearTokens();
+      }
     }
     
     // Format validation errors
@@ -238,11 +295,48 @@ class AuthService {
   }
 
   /**
+   * Check if token will expire soon (within specified minutes)
+   */
+  willTokenExpireSoon(minutesThreshold: number = 5): boolean {
+    const expiry = localStorage.getItem('tokenExpiry');
+    if (!expiry) return true;
+    
+    const expiryTime = parseInt(expiry);
+    const currentTime = Date.now();
+    const thresholdInMs = minutesThreshold * 60 * 1000;
+    
+    return (expiryTime - currentTime) <= thresholdInMs;
+  }
+
+  /**
+   * Get time until token expiry in minutes
+   */
+  getTimeUntilExpiry(): number {
+    const expiry = localStorage.getItem('tokenExpiry');
+    if (!expiry) return 0;
+    
+    const expiryTime = parseInt(expiry);
+    const currentTime = Date.now();
+    const diffInMs = expiryTime - currentTime;
+    
+    return Math.max(0, Math.floor(diffInMs / (60 * 1000)));
+  }
+
+  /**
    * Get authorization header for API requests
    */
   getAuthHeader(): Record<string, string> {
     const token = this.getStoredToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  /**
+   * Force logout and clear all authentication data
+   */
+  forceLogout(): void {
+    this.clearTokens();
+    // Dispatch a custom event to notify other parts of the app
+    window.dispatchEvent(new CustomEvent('auth:logout'));
   }
 }
 

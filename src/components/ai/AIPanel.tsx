@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { X, Maximize2, Minimize2, Bot } from "lucide-react";
 import ChatSidebar from "./ChatSidebar";
 import ChatInterface from "./ChatInterface";
+import { aiService, type ChatMessage } from "@/services/ai";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -20,6 +22,9 @@ interface ChatConversation {
   timestamp: string;
   category: 'market' | 'product' | 'general';
   messages: Message[];
+  messageCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AIPanelProps {
@@ -35,6 +40,9 @@ const mockConversations: ChatConversation[] = [
     lastMessage: 'Güncel trendlere göre, elektronik piyasası güçlü bir şekilde büyümekte...',
     timestamp: '2 saat önce',
     category: 'market',
+    messageCount: 2,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     messages: [
       {
         id: '1',
@@ -57,6 +65,9 @@ const mockConversations: ChatConversation[] = [
     lastMessage: 'Burada size yardımcı olabilirim...',
     timestamp: '1 gün önce',
     category: 'product',
+    messageCount: 2,
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     messages: [
       {
         id: '1',
@@ -79,6 +90,7 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const currentConversation = conversations.find(c => c.id === activeConversation);
 
@@ -90,6 +102,9 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
       lastMessage: '',
       timestamp: 'Şimdi',
       category: 'general',
+      messageCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       messages: []
     };
     
@@ -107,65 +122,70 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
   const handleSendMessage = async (content: string) => {
     if (!activeConversation) {
       handleNewConversation();
+      // Wait a bit for the new conversation to be set
+      setTimeout(() => handleSendMessage(content), 100);
       return;
     }
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content,
-      role: 'user',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    const userMessage = aiService.createUserMessage(content);
 
-    // Add user message
+    // Add user message immediately
     setConversations(prev => prev.map(conv => 
       conv.id === activeConversation 
         ? { 
             ...conv, 
             messages: [...conv.messages, userMessage],
             lastMessage: content,
-            timestamp: 'Şimdi'
+            timestamp: 'Şimdi',
+            messageCount: conv.messages.length + 1,
+            updatedAt: new Date().toISOString()
           }
         : conv
     ));
 
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `"${content}" konusunda soruyorsunuz. Bu bir mock yanıt Stox AI'den. Gerçek uygulamada, bu AI arka ucunuza bağlanır.
+    try {
+      // Get current conversation for context
+      const currentConv = conversations.find(c => c.id === activeConversation);
+      const allMessages = currentConv ? [...currentConv.messages, userMessage] : [userMessage];
 
-Burada size yardımcı olabilirim:
-• Market analizi ve trendler
-• Ürün optimizasyon stratejileri  
-• Fiyat önerileri
-• Performans bilgileri
-• Çoklu platform liste yönetimi
+      // Send message to AI service
+      const response = await aiService.sendConversationMessages(
+        allMessages,
+        activeConversation
+      );
 
-Bu konulardan hangisini açıklamak istersiniz?`,
-        role: 'assistant',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestions: ['Market trendleri', 'Ürün optimizasyonu', 'Fiyat önerileri']
-      };
+      // Format AI response
+      const aiMessage = aiService.formatChatMessage(response);
 
+      // Add AI response
       setConversations(prev => prev.map(conv => 
         conv.id === activeConversation 
           ? { 
               ...conv, 
-              messages: [...conv.messages, aiMessage],
+              messages: [...conv.messages.filter(m => m.id !== userMessage.id), userMessage, aiMessage],
               lastMessage: aiMessage.content.substring(0, 50) + '...',
               timestamp: 'Şimdi',
+              messageCount: conv.messages.length + 1,
               title: conv.title === 'Yeni Konuşma' 
                 ? content.substring(0, 30) + (content.length > 30 ? '...' : '')
-                : conv.title
+                : conv.title,
+              updatedAt: new Date().toISOString()
             }
           : conv
       ));
 
+    } catch (error) {
+      console.error('AI chat failed:', error);
+      toast({
+        title: "AI Chat Hatası",
+        description: error instanceof Error ? error.message : 'AI ile iletişim kurarken bir hata oluştu',
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   if (!isOpen) return null;

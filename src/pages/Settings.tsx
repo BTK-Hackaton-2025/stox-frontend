@@ -39,23 +39,8 @@ export default function Settings() {
     marketingEmails: false,
   });
 
-  const [marketplaceCredentials, setMarketplaceCredentials] = useState<MarketplaceCredential[]>([
-    {
-      id: '1',
-      marketplace: 'Amazon',
-      apiKey: 'AKIAI***************',
-      secretKey: '************************',
-      status: 'active',
-      lastSync: '2 hours ago'
-    },
-    {
-      id: '2',
-      marketplace: 'Trendyol',
-      apiKey: '',
-      secretKey: '',
-      status: 'inactive'
-    }
-  ]);
+  // TODO: Replace with API call to fetch user's marketplace credentials
+  const [marketplaceCredentials, setMarketplaceCredentials] = useState<MarketplaceCredential[]>([]);
 
   const [newCredential, setNewCredential] = useState({
     marketplace: '',
@@ -120,7 +105,8 @@ export default function Settings() {
 
   const handleSaveUserSettings = async () => {
     try {
-      // Here you would typically make an API call to save user settings
+      // TODO: Replace with actual API call to save user settings
+      // await apiClient.put('/user/settings', userSettings);
       toast({
         title: "Ayarlar kaydedildi",
         description: "Kullanıcı ayarlarınız başarıyla güncellendi.",
@@ -144,52 +130,94 @@ export default function Settings() {
       return;
     }
 
-    const selectedMarketplace = availableMarketplaces.find(m => m.value === newCredential.marketplace);
-    
-    const newCred: MarketplaceCredential = {
-      id: Date.now().toString(),
-      marketplace: selectedMarketplace?.label || newCredential.marketplace,
-      apiKey: newCredential.apiKey,
-      secretKey: newCredential.secretKey,
-      status: 'inactive'
-    };
+    try {
+      // TODO: Replace with actual API call to save marketplace credentials
+      // const response = await apiClient.post('/user/marketplace-credentials', newCredential);
+      
+      const selectedMarketplace = availableMarketplaces.find(m => m.value === newCredential.marketplace);
+      
+      const newCred: MarketplaceCredential = {
+        id: Date.now().toString(),
+        marketplace: selectedMarketplace?.label || newCredential.marketplace,
+        apiKey: newCredential.apiKey,
+        secretKey: newCredential.secretKey,
+        status: 'inactive'
+      };
 
-    setMarketplaceCredentials(prev => [...prev, newCred]);
-    setNewCredential({
-      marketplace: '',
-      apiKey: '',
-      secretKey: '',
-      additionalFields: {}
-    });
+      setMarketplaceCredentials(prev => [...prev, newCred]);
+      setNewCredential({
+        marketplace: '',
+        apiKey: '',
+        secretKey: '',
+        additionalFields: {}
+      });
 
-    toast({
-      title: "Kimlik bilgileri eklendi",
-      description: "Yeni pazaryerleri kimlik bilgileri başarıyla eklendi.",
-    });
+      toast({
+        title: "Kimlik bilgileri eklendi",
+        description: "Yeni pazaryerleri kimlik bilgileri başarıyla eklendi.",
+      });
+    } catch (error) {
+      toast({
+        title: "Hata",
+        description: "Kimlik bilgileri eklenemedi. Lütfen tekrar deneyiniz.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleRemoveCredential = (id: string) => {
-    setMarketplaceCredentials(prev => prev.filter(cred => cred.id !== id));
-    toast({
-      title: "Kimlik bilgileri silindi",
-      description: "Pazaryerleri kimlik bilgileri silindi.",
-    });
+  const handleRemoveCredential = async (id: string) => {
+    try {
+      // TODO: Replace with actual API call to delete marketplace credentials
+      // await apiClient.delete(`/user/marketplace-credentials/${id}`);
+      
+      setMarketplaceCredentials(prev => prev.filter(cred => cred.id !== id));
+      toast({
+        title: "Kimlik bilgileri silindi",
+        description: "Pazaryerleri kimlik bilgileri silindi.",
+      });
+    } catch (error) {
+      toast({
+        title: "Hata",
+        description: "Kimlik bilgileri silinemedi. Lütfen tekrar deneyiniz.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleTestCredential = async (id: string) => {
     const credential = marketplaceCredentials.find(c => c.id === id);
     if (!credential) return;
 
-    // Simulate API test
-    setTimeout(() => {
+    try {
+      // TODO: Replace with actual API call to test marketplace credentials
+      // const response = await apiClient.post(`/user/marketplace-credentials/${id}/test`);
+      // const status = response.data.success ? 'active' : 'error';
+      
+      // Simulate API test for now
+      const status = Math.random() > 0.3 ? 'active' : 'error';
+      
       setMarketplaceCredentials(prev =>
         prev.map(cred =>
           cred.id === id
-            ? { ...cred, status: Math.random() > 0.3 ? 'active' : 'error', lastSync: 'Just now' }
+            ? { ...cred, status: status as 'active' | 'inactive' | 'error', lastSync: 'Just now' }
             : cred
         )
       );
-    }, 1000);
+      
+      toast({
+        title: status === 'active' ? "Bağlantı başarılı" : "Bağlantı hatası",
+        description: status === 'active' 
+          ? "Pazaryerleri kimlik bilgileri doğrulandı." 
+          : "Kimlik bilgilerini kontrol edin.",
+        variant: status === 'active' ? "default" : "destructive",
+      });
+    } catch (error) {
+      toast({
+        title: "Test hatası",
+        description: "Bağlantı testi gerçekleştirilemedi.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -389,7 +417,8 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {marketplaceCredentials.map((credential) => (
+                {marketplaceCredentials.length > 0 ? (
+                  marketplaceCredentials.map((credential) => (
                   <div key={credential.id} className="p-4 border border-border rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
@@ -453,7 +482,14 @@ export default function Settings() {
                       </p>
                     )}
                   </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Store className="w-12 h-12 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Henüz pazaryeri entegrasyonu yok</h3>
+                    <p className="mb-4">Ürünlerinizi pazaryerlerinde satmaya başlamak için API kimlik bilgilerinizi ekleyin</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

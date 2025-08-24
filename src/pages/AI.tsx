@@ -1,75 +1,17 @@
 import React, { useState } from "react";
 import ChatSidebar from "@/components/ai/ChatSidebar";
 import ChatInterface from "@/components/ai/ChatInterface";
+import { aiService, type ChatMessage, type ChatConversation } from "@/services/ai";
+import { useToast } from "@/hooks/use-toast";
 
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: string;
-  suggestions?: string[];
-}
-
-interface ChatConversation {
-  id: string;
-  title: string;
-  lastMessage: string;
-  timestamp: string;
-  category: 'market' | 'product' | 'general';
-  messages: Message[];
-}
-
-// Mock data for conversations
-const mockConversations: ChatConversation[] = [
-  {
-    id: '1',
-    title: 'Elektronik Market Analizi',
-    lastMessage: 'Mevcut trendlere göre, elektronik piyasasında...',
-    timestamp: '2 hours ago',
-    category: 'market',
-    messages: [
-      {
-        id: '1',
-        content: 'Elektronik piyasasının mevcut trendlerini analiz edebilir misiniz?',
-        role: 'user',
-        timestamp: '2:30 PM'
-      },
-      {
-        id: '2',
-        content: 'Mevcut trendlere göre, elektronik piyasasında akıllı ev aletleri ve kullanıcı dostu teknolojilerde güçlü büyüme görülmektedir. Burada ana görüşler:\n\n• Akıllı ev aletleri: Yıllık 23% büyüme\n• Kullanıcı dostu teknolojiler: Yıllık 18% büyüme\n• Oyun aksesuarları: Yıllık 15% büyüme\n\nHerhangi bir kategoriye daha derinlemesine inmek ister misiniz?',
-        role: 'assistant',
-        timestamp: '2:31 PM',
-        suggestions: ['Analyze smart home devices', 'Wearables market deep dive', 'Gaming trends analysis']
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Ürün Listeleme Optimizasyonu',
-    lastMessage: 'Optimizasyon önerileri...',
-    timestamp: '1 day ago',
-    category: 'product',
-    messages: [
-      {
-        id: '1',
-        content: 'Kablosuz kulaklık listelemesini nasıl optimize edebilirim?',
-        role: 'user',
-        timestamp: 'Yesterday 3:15 PM'
-      },
-      {
-        id: '2',
-        content: 'Kablosuz kulaklık listelemesi için optimize edilmiş öneriler:\n\n**Başlık Optimizasyonu:**\n• Önemli özellikleri içerir: "Premium Bluetooth Kulaklık - Gürültü Yalıtımı, 30H Batarya"\n\n**Eklemek için Anahtar Kelimeler:**\n• bluetooth kulaklık\n• gürültü yalıtımı\n• kablosuz kulaklık\n• uzun batarya ömrü\n\n**Resimler:**\n• Kullanım görüntüleri ekleyin\n• Özellik çağrısı ekleyin\n• Boyut karşılaştırması gösterin\n\nMarketplace gereksinimlerinize yardımcı olmak ister misiniz?',
-        role: 'assistant',
-        timestamp: 'Yesterday 3:16 PM'
-      }
-    ]
-  }
-];
+// TODO: Replace with API call to fetch user's chat conversations
+const mockConversations: ChatConversation[] = [];
 
 export default function AI() {
   const [conversations, setConversations] = useState<ChatConversation[]>(mockConversations);
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const currentConversation = conversations.find(c => c.id === activeConversation);
 
@@ -80,8 +22,11 @@ export default function AI() {
       title: 'Yeni Konuşma',
       lastMessage: '',
       timestamp: 'Şimdi',
-      category: 'general',
-      messages: []
+      category: 'general' as const,
+      messages: [],
+      messageCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     
     setConversations(prev => [newConversation, ...prev]);
@@ -96,67 +41,86 @@ export default function AI() {
   };
 
   const handleSendMessage = async (content: string) => {
-    if (!activeConversation) {
-      handleNewConversation();
-      return;
+    let conversationId = activeConversation;
+    
+    if (!conversationId) {
+      const newId = Date.now().toString();
+      const newConversation: ChatConversation = {
+        id: newId,
+        title: 'Yeni Konuşma',
+        lastMessage: '',
+        timestamp: 'Şimdi',
+        category: 'general' as const,
+        messages: [],
+        messageCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      setConversations(prev => [newConversation, ...prev]);
+      setActiveConversation(newId);
+      conversationId = newId;
     }
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content,
-      role: 'user',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    const userMessage = aiService.createUserMessage(content);
 
-    // Add user message
+    // Add user message immediately
     setConversations(prev => prev.map(conv => 
-      conv.id === activeConversation 
+      conv.id === conversationId 
         ? { 
             ...conv, 
             messages: [...conv.messages, userMessage],
             lastMessage: content,
-            timestamp: 'Şimdi'
+            timestamp: 'Şimdi',
+            messageCount: conv.messageCount + 1,
+            updatedAt: new Date().toISOString()
           }
         : conv
     ));
 
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `"${content}" hakkında soruyorsunuz. Bu bir mock yanıtıdır. Gerçek uygulamada, bu AI arka ucunuzla bağlanır.
+    try {
+      // Get current conversation for context
+      const currentConv = conversations.find(c => c.id === conversationId);
+      const allMessages = currentConv ? [...currentConv.messages, userMessage] : [userMessage];
 
-Burada size yardımcı olabilirim:
-• Market analizi ve trendler
-• Ürün optimizasyon stratejileri  
-• Fiyat önerileri
-• Performans bilgileri
-• Çoklu platform listeleme yönetimi
+      // Send message to AI service
+      const response = await aiService.sendConversationMessages(
+        allMessages,
+        conversationId
+      );
 
-Bu konulardan herhangi birini açıklayabilirim?`,
-        role: 'assistant',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestions: ['Market trendleri', 'Ürün optimizasyonu', 'Fiyat stratejisi']
-      };
+      // Format AI response
+      const aiMessage = aiService.formatChatMessage(response);
 
+      // Add AI response
       setConversations(prev => prev.map(conv => 
-        conv.id === activeConversation 
+        conv.id === conversationId 
           ? { 
               ...conv, 
-              messages: [...conv.messages, aiMessage],
+              messages: [...conv.messages.filter(m => m.id !== userMessage.id), userMessage, aiMessage],
               lastMessage: aiMessage.content.substring(0, 50) + '...',
               timestamp: 'Şimdi',
               title: conv.title === 'Yeni Konuşma' 
                 ? content.substring(0, 30) + (content.length > 30 ? '...' : '')
-                : conv.title
+                : conv.title,
+              messageCount: conv.messageCount + 1,
+              updatedAt: new Date().toISOString()
             }
           : conv
       ));
 
+    } catch (error) {
+      console.error('AI chat failed:', error);
+      toast({
+        title: "AI Chat Hatası",
+        description: error instanceof Error ? error.message : 'AI ile iletişim kurarken bir hata oluştu',
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (

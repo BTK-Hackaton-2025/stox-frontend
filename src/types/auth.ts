@@ -76,6 +76,16 @@ export interface AuthContextType {
   validateToken: () => Promise<boolean>;
 }
 
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
+  tokenData: TokenData;
+}
+
 export interface ValidationError {
   field: string;
   message: string;

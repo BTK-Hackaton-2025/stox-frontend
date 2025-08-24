@@ -38,6 +38,8 @@ interface ApiErrorExtended extends Error {
 
 class ApiClient {
   private baseURL: string;
+  private isRefreshing = false;
+  private refreshPromise: Promise<boolean> | null = null;
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL;
@@ -69,6 +71,91 @@ class ApiClient {
     }
   }
 
+  private async refreshTokens(): Promise<boolean> {
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.isRefreshing = true;
+    this.refreshPromise = this.performTokenRefresh();
+
+    try {
+      const result = await this.refreshPromise;
+      return result;
+    } finally {
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    }
+  }
+
+  private async performTokenRefresh(): Promise<boolean> {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        return false;
+      }
+
+      const response = await fetch(`${this.baseURL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+      if (data.success && data.tokenData) {
+        localStorage.setItem('accessToken', data.tokenData.accessToken);
+        localStorage.setItem('refreshToken', data.tokenData.refreshToken);
+        localStorage.setItem('tokenExpiry', (Date.now() + data.tokenData.expiresIn * 1000).toString());
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  private async makeRequestWithRetry<T>(
+    url: string, 
+    options: RequestInit, 
+    retryOnAuth = true
+  ): Promise<T> {
+    try {
+      const response = await fetch(url, options);
+      
+      // If we get a 401 and this isn't a refresh request, try to refresh the token
+      if (response.status === 401 && retryOnAuth && !url.includes('/auth/refresh')) {
+        const refreshSuccess = await this.refreshTokens();
+        
+        if (refreshSuccess) {
+          // Update the authorization header with the new token
+          const newToken = localStorage.getItem('accessToken');
+          if (newToken && options.headers) {
+            (options.headers as Record<string, string>).Authorization = `Bearer ${newToken}`;
+          }
+          
+          // Retry the original request
+          const retryResponse = await fetch(url, options);
+          return this.handleResponse<T>(retryResponse);
+        } else {
+          // Only clear tokens if we're sure the refresh failed due to auth issues
+          // Network errors shouldn't clear tokens
+          console.warn('Token refresh failed in API client, but keeping tokens for potential recovery');
+        }
+      }
+      
+      return this.handleResponse<T>(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   private getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('accessToken');
     return {
@@ -92,51 +179,41 @@ class ApiClient {
       });
     }
 
-    const response = await fetch(url.toString(), {
+    return this.makeRequestWithRetry<T>(url.toString(), {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
-
-    return this.handleResponse<T>(response);
   }
 
   async post<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    return this.makeRequestWithRetry<T>(`${this.baseURL}${endpoint}`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     });
-
-    return this.handleResponse<T>(response);
   }
 
   async postMultipart<T = unknown>(endpoint: string, formData: FormData): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    return this.makeRequestWithRetry<T>(`${this.baseURL}${endpoint}`, {
       method: 'POST',
       headers: this.getMultipartHeaders(),
       body: formData,
     });
-
-    return this.handleResponse<T>(response);
   }
 
   async put<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    return this.makeRequestWithRetry<T>(`${this.baseURL}${endpoint}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     });
-
-    return this.handleResponse<T>(response);
   }
 
   async delete<T = unknown>(endpoint: string): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    return this.makeRequestWithRetry<T>(`${this.baseURL}${endpoint}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
-
-    return this.handleResponse<T>(response);
   }
 
   // Health check

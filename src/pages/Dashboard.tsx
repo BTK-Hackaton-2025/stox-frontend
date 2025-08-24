@@ -1,62 +1,40 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { BarChart3, Package, ShoppingCart, TrendingUp, Plus, Eye } from "lucide-react";
+import { BarChart3, Package, ShoppingCart, TrendingUp, Plus, Eye, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import MarketplaceCard from "@/components/marketplace-card";
-import StatusBadge from "@/components/status-badge";
+import StatusBadge, { StatusType } from "@/components/status-badge";
 import heroImage from "@/assets/hero-dashboard.jpg";
 
-const recentProducts = [
-  {
-    id: 1,
-    name: "Premium Wireless Headphones",
-    image: "/api/placeholder/80/80",
-    status: "published" as const,
-    marketplaces: 3,
-    lastUpdate: "2 hours ago"
-  },
-  {
-    id: 2,
-    name: "Smart Fitness Tracker",
-    image: "/api/placeholder/80/80",
-    status: "pending" as const,
-    marketplaces: 2,
-    lastUpdate: "1 hour ago"
-  },
-  {
-    id: 3,
-    name: "Ergonomic Office Chair",
-    image: "/api/placeholder/80/80",
-    status: "error" as const,
-    marketplaces: 1,
-    lastUpdate: "30 minutes ago"
-  }
-];
+interface Product {
+  id: string;
+  name: string;
+  image: string;
+  status: StatusType;
+  marketplaces: number;
+  lastUpdate: string;
+}
 
-const marketplaces = [
-  {
-    name: "Amazon",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
-    status: "published" as const,
-    url: "https://amazon.com/dp/B08XYZ123",
-    lastSync: "5 minutes ago"
-  },
-  {
-    name: "Trendyol",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/c/c7/Trendyol_logo.svg",
-    status: "pending" as const,
-    lastSync: "2 minutes ago"
-  },
-  {
-    name: "Hepsiburada",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/20/Hepsiburada_logo_official.svg",
-    status: "error" as const,
-    error: "Invalid product category. Please review and resubmit.",
-    lastSync: "10 minutes ago"
-  }
-];
+interface Marketplace {
+  name: string;
+  logo: string;
+  status: StatusType;
+  url?: string;
+  error?: string;
+  lastSync?: string;
+}
+
+// TODO: Replace with API calls to fetch real data
+const recentProducts: Product[] = [];
+const marketplaces: Marketplace[] = [];
+const stats = {
+  totalProducts: 0,
+  publishedProducts: 0,
+  totalOrders: 0,
+  revenue: 0
+};
 
 export default function Dashboard() {
   return (
@@ -83,13 +61,7 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
-        <div className="absolute right-0 top-0 w-1/2 h-full opacity-20">
-          <img 
-            src={heroImage} 
-            alt="Dashboard preview" 
-            className="w-full h-full object-cover"
-          />
-        </div>
+
       </div>
 
       {/* Stats Grid */}
@@ -100,9 +72,9 @@ export default function Dashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">{stats.totalProducts}</div>
             <p className="text-xs text-muted-foreground">
-              Son ay için +3
+              Son ay için +{stats.totalProducts > 0 ? Math.floor(stats.totalProducts * 0.1) : 0}
             </p>
           </CardContent>
         </Card>
@@ -113,9 +85,9 @@ export default function Dashboard() {
             <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">18</div>
+            <div className="text-2xl font-bold">{stats.publishedProducts}</div>
             <p className="text-xs text-muted-foreground">
-              75% başarı oranı
+              {stats.totalProducts > 0 ? Math.round((stats.publishedProducts / stats.totalProducts) * 100) : 0}% başarı oranı
             </p>
           </CardContent>
         </Card>
@@ -126,9 +98,9 @@ export default function Dashboard() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">127</div>
+            <div className="text-2xl font-bold">{stats.totalOrders}</div>
             <p className="text-xs text-muted-foreground">
-              Son hafta için +12%
+              Son hafta için +{stats.totalOrders > 0 ? Math.floor(stats.totalOrders * 0.12) : 0}%
             </p>
           </CardContent>
         </Card>
@@ -139,9 +111,9 @@ export default function Dashboard() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$3,247</div>
+            <div className="text-2xl font-bold">${stats.revenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              Son ay için +8%
+              Son ay için +{stats.revenue > 0 ? Math.floor(stats.revenue * 0.08) : 0}%
             </p>
           </CardContent>
         </Card>
@@ -157,33 +129,48 @@ export default function Dashboard() {
           </div>
           
           <div className="space-y-4">
-            {recentProducts.map((product) => (
-              <Card key={product.id} className="glass-card hover-lift">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-background-muted rounded-lg overflow-hidden">
-                      <img 
-                        src={product.image} 
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{product.name}</h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <StatusBadge status={product.status} />
-                        <Badge variant="outline" className="text-xs">
-                          {product.marketplaces} marketplaces
-                        </Badge>
+            {recentProducts.length > 0 ? (
+              recentProducts.map((product) => (
+                <Card key={product.id} className="glass-card hover-lift">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-16 h-16 bg-background-muted rounded-lg overflow-hidden">
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Updated {product.lastUpdate}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{product.name}</h3>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <StatusBadge status={product.status} />
+                          <Badge variant="outline" className="text-xs">
+                            {product.marketplaces} marketplaces
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Updated {product.lastUpdate}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card className="glass-card">
+                <CardContent className="p-8 text-center">
+                  <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Henüz ürün yok</h3>
+                  <p className="text-muted-foreground mb-4">
+                    İlk ürününüzü oluşturmak için başlayın
+                  </p>
+                  <Button asChild>
+                    <Link to="/products/new">Ürün Oluştur</Link>
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
         </div>
 
@@ -195,17 +182,32 @@ export default function Dashboard() {
           </div>
           
           <div className="space-y-4">
-            {marketplaces.map((marketplace, index) => (
-              <MarketplaceCard
-                key={index}
-                name={marketplace.name}
-                logo={marketplace.logo}
-                status={marketplace.status}
-                url={marketplace.url}
-                error={marketplace.error}
-                lastSync={marketplace.lastSync}
-              />
-            ))}
+            {marketplaces.length > 0 ? (
+              marketplaces.map((marketplace, index) => (
+                <MarketplaceCard
+                  key={index}
+                  name={marketplace.name}
+                  logo={marketplace.logo}
+                  status={marketplace.status}
+                  url={marketplace.url}
+                  error={marketplace.error}
+                  lastSync={marketplace.lastSync}
+                />
+              ))
+            ) : (
+              <Card className="glass-card">
+                <CardContent className="p-8 text-center">
+                  <Store className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Pazaryeri entegrasyonu yok</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Pazaryerlerini bağlamak için ayarları yapılandırın
+                  </p>
+                  <Button asChild>
+                    <Link to="/settings">Ayarlara Git</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

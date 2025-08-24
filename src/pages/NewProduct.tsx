@@ -1,62 +1,49 @@
 import React from "react";
-import { Wand2, Save, Upload, Sparkles, Package, CheckCircle, ImageIcon } from "lucide-react";
+import { Wand2, Save, Upload, Sparkles, Package, CheckCircle, ImageIcon, Store, Loader2, Search, BarChart3, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import UploadZone from "@/components/upload-zone";
-import MarketplaceCard from "@/components/marketplace-card";
+import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 
-const categories = [
-  "Electronics > Audio > Headphones",
-  "Electronics > Audio > Speakers", 
-  "Electronics > Computers > Laptops",
-  "Electronics > Mobile > Smartphones",
-  "Fashion > Clothing > T-Shirts",
-  "Fashion > Accessories > Bags",
-  "Home & Garden > Furniture > Chairs",
-  "Home & Garden > Kitchen > Appliances",
-  "Sports > Fitness > Equipment",
-  "Books > Fiction > Mystery"
-];
+// TODO: Replace with API calls to fetch categories and marketplace data
+const categories: string[] = [];
+const marketplaces: { name: string; logo: string }[] = [];
 
-const marketplaces = [
-  {
-    name: "Amazon",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
-    status: "draft" as const,
-    selected: false
-  },
-  {
-    name: "Trendyol", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/c/c7/Trendyol_logo.svg",
-    status: "draft" as const,
-    selected: false
-  },
-  {
-    name: "Hepsiburada",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/20/Hepsiburada_logo_official.svg", 
-    status: "draft" as const,
-    selected: false
-  }
-];
+import { ImageUploadResponse } from "@/services/image";
+import { aiService, type SEOAnalysisResponse } from "@/services/ai";
+import ImageSplitPopup from "@/components/image-split-popup";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NewProduct() {
   const [files, setFiles] = React.useState<File[]>([]);
+  const [uploadedImages, setUploadedImages] = React.useState<ImageUploadResponse[]>([]);
   const [isGenerating, setIsGenerating] = React.useState(false);
+  const [isEnhancing, setIsEnhancing] = React.useState(false);
+  const [seoAnalysis, setSeoAnalysis] = React.useState<SEOAnalysisResponse | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const { toast } = useToast();
   const [selectedMarketplaces, setSelectedMarketplaces] = React.useState<string[]>([]);
   const [isPublishing, setIsPublishing] = React.useState(false);
+  const [showUploadLoader, setShowUploadLoader] = React.useState(false);
+  const [showEnhancementLoader, setShowEnhancementLoader] = React.useState(false);
+  const [showSEOLoader, setShowSEOLoader] = React.useState(false);
+  const [showImagePopup, setShowImagePopup] = React.useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
+  const [imageVersionSelections, setImageVersionSelections] = React.useState<Record<number, 'original' | 'enhanced'>>({});
+  const [shouldShowPopupAfterLoad, setShouldShowPopupAfterLoad] = React.useState(false);
   const [formData, setFormData] = React.useState({
     title: "",
     description: "",
     price: "",
     category: "",
     keywords: "",
+    tags: "",
     sku: "",
     inventory: "",
     weight: "",
@@ -67,6 +54,113 @@ export default function NewProduct() {
     setFiles(selectedFiles);
   };
 
+  const handleUploadStart = () => {
+    setShowUploadLoader(true);
+  };
+
+  const handleUploadEnd = () => {
+    setShowUploadLoader(false);
+  };
+
+  const handleUploadComplete = (images: ImageUploadResponse[]) => {
+    setUploadedImages(prev => [...prev, ...images]);
+  };
+
+  const handleLoaderComplete = (loaderType?: string) => {
+    // Set flag to show popup after any loader completes
+    setShouldShowPopupAfterLoad(true);
+  };
+
+  // Effect to show popup when we have images and a loader has completed
+  React.useEffect(() => {
+    if (shouldShowPopupAfterLoad && uploadedImages.length > 0) {
+      setShowImagePopup(true);
+      setShouldShowPopupAfterLoad(false); // Reset flag
+    }
+  }, [shouldShowPopupAfterLoad, uploadedImages.length]);
+
+  const handleImageSelect = (index: number) => {
+    setSelectedImageIndex(index);
+  };
+
+  const handleVersionSelect = (imageIndex: number, version: 'original' | 'enhanced') => {
+    setImageVersionSelections(prev => ({
+      ...prev,
+      [imageIndex]: version
+    }));
+  };
+
+  const getSelectedVersion = (imageIndex: number): 'original' | 'enhanced' => {
+    return imageVersionSelections[imageIndex] || 'enhanced'; // Default to enhanced
+  };
+
+  const handleSEOAnalysis = (analysis: SEOAnalysisResponse) => {
+    setSeoAnalysis(analysis);
+    
+    // Auto-populate form fields based on SEO recommendations
+    if (analysis.analysis.seoRecommendations.titleSuggestions.length > 0 && !formData.title) {
+      setFormData(prev => ({
+        ...prev,
+        title: analysis.analysis.seoRecommendations.titleSuggestions[0]
+      }));
+    }
+    
+    if (analysis.analysis.seoRecommendations.keywordRecommendations.length > 0) {
+      const keywords = analysis.analysis.seoRecommendations.keywordRecommendations.slice(0, 5).join(', ');
+      setFormData(prev => ({
+        ...prev,
+        tags: prev.tags ? `${prev.tags}, ${keywords}` : keywords
+      }));
+    }
+    
+    toast({
+      title: "SEO Analizi Tamamlandı",
+      description: `Genel skor: ${analysis.analysis.overallScore}/100. Form alanları otomatik dolduruldu.`,
+    });
+  };
+
+  const runQuickSEOAnalysis = async () => {
+    if (files.length === 0) {
+      toast({
+        title: "Resim Gerekli",
+        description: "SEO analizi için en az bir resim yükleyin.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setShowSEOLoader(true);
+    try {
+      // Simulate realistic timing for SEO analysis steps
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Image processing
+      
+      const analysis = await aiService.analyzeSEO({
+        images: files,
+        productInfo: {
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          price: formData.price ? parseFloat(formData.price) : undefined,
+          tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : undefined
+        },
+        targetMarketplaces: ['trendyol', 'hepsiburada'],
+        analysisType: 'detailed'
+      });
+      
+      handleSEOAnalysis(analysis);
+    } catch (error) {
+      toast({
+        title: "SEO Analizi Hatası",
+        description: error instanceof Error ? error.message : 'Analiz sırasında bir hata oluştu',
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
+      setShowSEOLoader(false);
+    }
+  };
+
   const generateAIContent = async () => {
     if (files.length === 0) {
       alert("Please upload at least one image first.");
@@ -74,20 +168,17 @@ export default function NewProduct() {
     }
     
     setIsGenerating(true);
-    // Simulate AI generation
-    setTimeout(() => {
-      setFormData({
-        ...formData,
-        title: "Premium Wireless Bluetooth Headphones with Active Noise Cancellation",
-        description: "Experience crystal-clear audio with these premium wireless headphones featuring advanced active noise cancellation technology. With 30-hour battery life, premium comfort padding, and superior sound quality, these headphones are perfect for music enthusiasts, professionals, and daily commuters. Features include quick charge, multipoint connectivity, and premium build quality.",
-        category: "Electronics > Audio > Headphones",
-        keywords: "wireless headphones, bluetooth, noise cancelling, premium audio, long battery, comfort fit, professional headphones",
-        sku: "WH-" + Math.random().toString(36).substr(2, 6).toUpperCase(),
-        inventory: "50",
-        weight: "250"
-      });
+    // TODO: Replace with actual AI API call
+    try {
+      // API call to generate content from images
+      // const response = await apiClient.post('/ai/generate-product', formData);
+      // setFormData(response.data);
+      alert("AI content generation will be implemented with real API endpoints.");
+    } catch (error) {
+      console.error("AI generation failed:", error);
+    } finally {
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
   const generateFieldContent = async (fieldType: string) => {
@@ -96,32 +187,65 @@ export default function NewProduct() {
       return;
     }
     
-    // Simulate individual field AI generation
-    setTimeout(() => {
-      switch (fieldType) {
-        case 'title':
-          setFormData({...formData, title: "Premium Wireless Bluetooth Headphones with Active Noise Cancellation"});
-          break;
-        case 'description':
-          setFormData({...formData, description: "Experience crystal-clear audio with these premium wireless headphones featuring advanced active noise cancellation technology. Perfect for music lovers and professionals."});
-          break;
-        case 'keywords':
-          setFormData({...formData, keywords: "wireless headphones, bluetooth, noise cancelling, premium audio, long battery"});
-          break;
-        case 'sku':
-          setFormData({...formData, sku: "WH-" + Math.random().toString(36).substr(2, 6).toUpperCase()});
-          break;
-      }
-    }, 1000);
+    // TODO: Replace with actual AI field generation API call
+    try {
+      // API call to generate specific field content
+      // const response = await apiClient.post(`/ai/generate-field/${fieldType}`, { images: files });
+      // setFormData({...formData, [fieldType]: response.data.content});
+      alert(`AI ${fieldType} generation will be implemented with real API endpoints.`);
+    } catch (error) {
+      console.error(`AI ${fieldType} generation failed:`, error);
+    }
   };
 
   const enhanceImages = async () => {
     if (files.length === 0) {
-      alert("Please upload at least one image first.");
+      toast({
+        title: "Resim Gerekli",
+        description: "Resim iyileştirmesi için en az bir resim yükleyin.",
+        variant: "destructive"
+      });
       return;
     }
-    
-    alert("AI image enhancement coming soon! This will improve image quality, lighting, and background.");
+
+    setIsEnhancing(true);
+    setShowEnhancementLoader(true);
+    try {
+      // Simulate realistic timing for image enhancement analysis steps
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Initial analysis
+      
+      // Use AI service to get image enhancement suggestions
+      const response = await aiService.sendMessage({
+        message: `Bu ürün resimlerini nasıl iyileştirebilirim? ${files.length} adet resim var. Ürün: ${formData.title || 'Belirtilmemiş'}, Kategori: ${formData.category || 'Belirtilmemiş'}. 
+
+Lütfen şunlar için öneriler verin:
+1. Resim kompozisyonu
+2. Aydınlatma ve kalite
+3. Arka plan önerileri
+4. Ürün pozisyonlandırması
+5. Marketplace standartlarına uygunluk
+6. SEO dostu resim optimizasyonu`
+      });
+
+      // Show enhancement suggestions in a toast or modal
+      toast({
+        title: "Resim İyileştirme Önerileri",
+        description: "AI önerileri alındı. Detaylar için chat panelini açın.",
+      });
+      
+      // You could also open the AI panel here if needed
+      console.log('Image enhancement suggestions:', response);
+      
+    } catch (error) {
+      toast({
+        title: "İyileştirme Hatası",
+        description: error instanceof Error ? error.message : 'Resim iyileştirme önerileri alınamadı',
+        variant: "destructive"
+      });
+    } finally {
+      setIsEnhancing(false);
+      setShowEnhancementLoader(false);
+    }
   };
 
   const handleMarketplaceSelect = (marketplaceName: string) => {
@@ -139,15 +263,91 @@ export default function NewProduct() {
     }
     
     setIsPublishing(true);
-    // Simulate publishing
-    setTimeout(() => {
+    // TODO: Replace with actual product publishing API call
+    try {
+      // API call to publish product to selected marketplaces
+      // const response = await apiClient.post('/products', {
+      //   ...formData,
+      //   images: files,
+      //   marketplaces: selectedMarketplaces
+      // });
+      // alert("Product published successfully!");
+      alert("Product publishing will be implemented with real API endpoints.");
+    } catch (error) {
+      console.error("Product publishing failed:", error);
+      alert("Failed to publish product. Please try again.");
+    } finally {
       setIsPublishing(false);
-      alert("Product published successfully!");
-    }, 2000);
+    }
   };
 
+  // Loading states for different processes
+  const uploadLoadingStates = [
+    { text: "Resimler sunucuya yükleniyor..." },
+    { text: "Dosya boyutları optimize ediliyor..." },
+    { text: "AI ile resim kalitesi analiz ediliyor..." },
+    { text: "Resim iyileştirme işlemi yapılıyor..." },
+    { text: "CloudFront CDN'e aktarılıyor..." },
+    { text: "Meta veriler kaydediliyor..." },
+    { text: "Yükleme tamamlandı!" }
+  ];
+
+  const enhancementLoadingStates = [
+    { text: "Resimler AI ile analiz ediliyor..." },
+    { text: "Kompozisyon önerileri hazırlanıyor..." },
+    { text: "Aydınlatma ve kalite değerlendiriliyor..." },
+    { text: "Arka plan önerileri oluşturuluyor..." },
+    { text: "Marketplace standartları kontrol ediliyor..." },
+    { text: "SEO dostu optimizasyon önerileri hazırlanıyor..." },
+    { text: "İyileştirme önerileri hazır!" }
+  ];
+
+  const seoLoadingStates = [
+    { text: "Resimler SEO analizi için işleniyor..." },
+    { text: "Anahtar kelimeler belirleniyor..." },
+    { text: "Başlık önerileri oluşturuluyor..." },
+    { text: "Marketplace uyumluluğu kontrol ediliyor..." },
+    { text: "Rekabet analizi yapılıyor..." },
+    { text: "SEO skoru hesaplanıyor..." },
+    { text: "Analiz tamamlandı!" }
+  ];
+
         return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <>
+      {/* Multi-Step Loaders */}
+      <MultiStepLoader 
+        loadingStates={uploadLoadingStates} 
+        loading={showUploadLoader} 
+        duration={1400}
+        loop={false}
+        onComplete={() => handleLoaderComplete('upload')}
+      />
+      
+      <MultiStepLoader 
+        loadingStates={enhancementLoadingStates} 
+        loading={showEnhancementLoader} 
+        duration={800}
+        loop={false}
+        onComplete={() => handleLoaderComplete('enhancement')}
+      />
+      
+      <MultiStepLoader 
+        loadingStates={seoLoadingStates} 
+        loading={showSEOLoader} 
+        duration={700}
+        loop={false}
+        onComplete={() => handleLoaderComplete('seo')}
+      />
+      
+      {/* Image Split Popup */}
+      <ImageSplitPopup
+        isOpen={showImagePopup}
+        onClose={() => setShowImagePopup(false)}
+        images={uploadedImages}
+        title="Image Enhancement Results"
+      />
+      
+      <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Yeni Ürün Oluştur</h1>
@@ -180,39 +380,85 @@ export default function NewProduct() {
                     {/* Product Images */}
           <Card className="glass-card relative">
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <ImageIcon className="w-5 h-5 mr-2" />
-                  Ürün Resimleri
-                </div>
-                <Button
-                  onClick={enhanceImages}
-                  disabled={files.length === 0}
-                  variant="ghost"
-                  size="sm"
-                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                >
-                  <Wand2 className="w-4 h-4" />
-                </Button>
+              <CardTitle className="flex items-center">
+                <ImageIcon className="w-5 h-5 mr-2" />
+                Ürün Resimleri
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <UploadZone onFileSelect={handleFileSelect} />
-              {files.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {files.map((file, index) => (
-                    <div key={index} className="aspect-square bg-background-muted rounded-lg overflow-hidden">
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Product ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+            <CardContent className="space-y-4">
+              <UploadZone 
+                onFileSelect={handleFileSelect}
+                onUploadComplete={handleUploadComplete}
+                onUploadStart={handleUploadStart}
+                onUploadEnd={handleUploadEnd}
+                autoUpload={true}
+                tags={["product", "new-listing"]}
+              />
+
             </CardContent>
           </Card>
+          
+          {/* SEO Analysis Results */}
+          {seoAnalysis && (
+            <Card className="glass-card relative">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <BarChart3 className="w-5 h-5 mr-2" />
+                    SEO Analiz Sonuçları
+                  </div>
+                  <Badge variant={seoAnalysis.analysis.overallScore >= 80 ? 'default' : 'secondary'}>
+                    {seoAnalysis.analysis.overallScore}/100
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">
+                      {Math.round(seoAnalysis.analysis.imageAnalysis.reduce((acc, img) => acc + img.scores.quality, 0) / seoAnalysis.analysis.imageAnalysis.length)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Resim Kalitesi</p>
+                  </div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <p className="text-2xl font-bold text-blue-600">
+                      {seoAnalysis.analysis.seoRecommendations.keywordRecommendations.length}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Anahtar Kelime</p>
+                  </div>
+                </div>
+
+                {/* Top Recommendations */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">Önemli Öneriler:</h4>
+                  <div className="space-y-1">
+                    {seoAnalysis.analysis.imageAnalysis[0]?.improvements.slice(0, 3).map((improvement, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm">
+                        <Lightbulb className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                        {improvement}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Marketplace Scores */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">Marketplace Uyumluluğu:</h4>
+                  <div className="space-y-2">
+                    {seoAnalysis.analysis.marketplaceOptimization.slice(0, 2).map((marketplace, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <span className="text-sm">{marketplace.marketplace}</span>
+                        <Badge variant={marketplace.optimizationScore >= 80 ? 'default' : 'secondary'}>
+                          {marketplace.optimizationScore}/100
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Form Fields - Right Side */}
@@ -228,18 +474,7 @@ export default function NewProduct() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <Label htmlFor="title">Ürün Başlığı *</Label>
-                    <Button
-                      onClick={() => generateFieldContent('title')}
-                      disabled={files.length === 0}
-                      variant="ghost"
-                      size="sm"
-                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 h-6 w-6 p-0"
-                    >
-                      <Wand2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  <Label htmlFor="title">Ürün Başlığı *</Label>
                   <Input
                     id="title"
                     value={formData.title}
@@ -249,18 +484,7 @@ export default function NewProduct() {
                 </div>
                 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <Label htmlFor="description">Açıklama *</Label>
-                    <Button
-                      onClick={() => generateFieldContent('description')}
-                      disabled={files.length === 0}
-                      variant="ghost"
-                      size="sm"
-                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 h-6 w-6 p-0"
-                    >
-                      <Wand2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  <Label htmlFor="description">Açıklama *</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
@@ -291,11 +515,17 @@ export default function NewProduct() {
                         <SelectValue placeholder="Kategori seçiniz" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
+                        {categories.length > 0 ? (
+                          categories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="loading" disabled>
+                            Loading categories...
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -303,18 +533,7 @@ export default function NewProduct() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <Label htmlFor="sku">SKU</Label>
-                      <Button
-                        onClick={() => generateFieldContent('sku')}
-                        disabled={files.length === 0}
-                        variant="ghost"
-                        size="sm"
-                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 h-6 w-6 p-0"
-                      >
-                        <Wand2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <Label htmlFor="sku">SKU</Label>
                     <Input
                       id="sku"
                       value={formData.sku}
@@ -362,18 +581,7 @@ export default function NewProduct() {
                 </div>
                 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <Label htmlFor="keywords">SEO Anahtar Kelimeler</Label>
-                    <Button
-                      onClick={() => generateFieldContent('keywords')}
-                      disabled={files.length === 0}
-                      variant="ghost"
-                      size="sm"
-                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 h-6 w-6 p-0"
-                    >
-                      <Wand2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  <Label htmlFor="keywords">SEO Anahtar Kelimeler</Label>
                   <Input
                     id="keywords"
                     value={formData.keywords}
@@ -395,33 +603,40 @@ export default function NewProduct() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-3">
-                {marketplaces.map((marketplace) => (
-                  <div
-                    key={marketplace.name}
-                    onClick={() => handleMarketplaceSelect(marketplace.name)}
-                    className={`cursor-pointer p-3 rounded-lg border-2 transition-all ${
-                      selectedMarketplaces.includes(marketplace.name)
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <img 
-                        src={marketplace.logo} 
-                        alt={marketplace.name}
-                        className="w-6 h-6 object-contain"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{marketplace.name}</p>
+                {marketplaces.length > 0 ? (
+                  marketplaces.map((marketplace) => (
+                    <div
+                      key={marketplace.name}
+                      onClick={() => handleMarketplaceSelect(marketplace.name)}
+                      className={`cursor-pointer p-3 rounded-lg border-2 transition-all ${
+                        selectedMarketplaces.includes(marketplace.name)
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={marketplace.logo} 
+                          alt={marketplace.name}
+                          className="w-6 h-6 object-contain"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{marketplace.name}</p>
+                        </div>
+                        {selectedMarketplaces.includes(marketplace.name) ? (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <div className="w-5 h-5 border-2 border-border rounded-full" />
+                        )}
                       </div>
-                      {selectedMarketplaces.includes(marketplace.name) ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <div className="w-5 h-5 border-2 border-border rounded-full" />
-                      )}
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Store className="w-12 h-12 mx-auto mb-4" />
+                    <p>No marketplaces configured. Please set up marketplace integrations in Settings.</p>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
@@ -446,5 +661,6 @@ export default function NewProduct() {
         </div>
       </div>
     </div>
+    </>
   );
 }

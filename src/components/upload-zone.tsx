@@ -1,24 +1,101 @@
-import React, { useCallback } from "react";
-import { Upload, Image, X } from "lucide-react";
+import React, { useCallback, useState } from "react";
+import { Upload, Image, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { imageService, type ImageUploadResponse } from "@/services/image";
+import { useToast } from "@/hooks/use-toast";
 
 interface UploadZoneProps {
-  onFileSelect: (files: File[]) => void;
+  onFileSelect?: (files: File[]) => void;
+  onUploadComplete?: (uploadedImages: ImageUploadResponse[]) => void;
+  onUploadStart?: () => void;
+  onUploadEnd?: () => void;
   maxFiles?: number;
   acceptedTypes?: string[];
   className?: string;
+  autoUpload?: boolean;
+  tags?: string[];
+}
+
+interface FileWithStatus {
+  file: File;
+  status: 'pending' | 'uploading' | 'completed' | 'error';
+  progress?: number;
+  uploadResponse?: ImageUploadResponse;
+  error?: string;
 }
 
 export default function UploadZone({
   onFileSelect,
+  onUploadComplete,
+  onUploadStart,
+  onUploadEnd,
   maxFiles = 5,
   acceptedTypes = ["image/jpeg", "image/png", "image/webp"],
-  className
+  className,
+  autoUpload = false,
+  tags = []
 }: UploadZoneProps) {
-  const [isDragOver, setIsDragOver] = React.useState(false);
-  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const validateAndAddFiles = (files: File[]) => {
+    const validFiles: File[] = [];
+    const errors: string[] = [];
+
+    for (const file of files) {
+      const validation = imageService.validateImageFile(file);
+      if (validation.valid) {
+        validFiles.push(file);
+      } else {
+        errors.push(`${file.name}: ${validation.error}`);
+      }
+    }
+
+    if (errors.length > 0) {
+      toast({
+        title: "Dosya Doğrulama Hatası",
+        description: errors.join('\n'),
+        variant: "destructive"
+      });
+    }
+
+    if (validFiles.length > 0) {
+      const currentCount = filesWithStatus.length;
+      const availableSlots = maxFiles - currentCount;
+      const filesToAdd = validFiles.slice(0, availableSlots);
+
+      const newFilesWithStatus: FileWithStatus[] = filesToAdd.map(file => ({
+        file,
+        status: 'pending'
+      }));
+
+      const updatedFiles = [...filesWithStatus, ...newFilesWithStatus];
+      setFilesWithStatus(updatedFiles);
+
+      // Call onFileSelect with just the File objects
+      const allFiles = updatedFiles.map(f => f.file);
+      onFileSelect?.(allFiles);
+
+      // Auto-upload if enabled
+      if (autoUpload) {
+        uploadFiles(newFilesWithStatus);
+      }
+
+      if (filesToAdd.length < validFiles.length) {
+        toast({
+          title: "Dosya Limiti",
+          description: `Maksimum ${maxFiles} dosya yükleyebilirsiniz. ${validFiles.length - filesToAdd.length} dosya eklenmedi.`,
+          variant: "destructive"
+        });
+      }
+    }
+  };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -29,23 +106,116 @@ export default function UploadZone({
     );
 
     if (files.length > 0) {
-      const newFiles = [...selectedFiles, ...files].slice(0, maxFiles);
-      setSelectedFiles(newFiles);
-      onFileSelect(newFiles);
+      validateAndAddFiles(files);
     }
-  }, [acceptedTypes, maxFiles, selectedFiles, onFileSelect]);
+  }, [acceptedTypes, maxFiles, filesWithStatus, autoUpload, tags]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const newFiles = [...selectedFiles, ...files].slice(0, maxFiles);
-    setSelectedFiles(newFiles);
-    onFileSelect(newFiles);
+    validateAndAddFiles(files);
   };
 
   const removeFile = (index: number) => {
-    const newFiles = selectedFiles.filter((_, i) => i !== index);
-    setSelectedFiles(newFiles);
-    onFileSelect(newFiles);
+    const updatedFiles = filesWithStatus.filter((_, i) => i !== index);
+    setFilesWithStatus(updatedFiles);
+    
+    const allFiles = updatedFiles.map(f => f.file);
+    onFileSelect?.(allFiles);
+  };
+
+  const uploadFiles = async (filesToUpload: FileWithStatus[] = filesWithStatus) => {
+    if (isUploading) return;
+
+    setIsUploading(true);
+    onUploadStart?.(); // Notify parent that upload started
+    const pendingFiles = filesToUpload.filter(f => f.status === 'pending');
+    
+    if (pendingFiles.length === 0) {
+      setIsUploading(false);
+      onUploadEnd?.(); // Notify parent that upload ended
+      return;
+    }
+
+    try {
+      // Update status to uploading
+      setFilesWithStatus(prev => 
+        prev.map(f => 
+          pendingFiles.includes(f) ? { ...f, status: 'uploading' as const, progress: 0 } : f
+        )
+      );
+
+      const uploadPromises = pendingFiles.map(async (fileWithStatus, index) => {
+        try {
+          const response = await imageService.uploadImage(fileWithStatus.file, tags);
+          
+          // Update status to completed
+          setFilesWithStatus(prev => 
+            prev.map(f => 
+              f.file === fileWithStatus.file 
+                ? { ...f, status: 'completed' as const, progress: 100, uploadResponse: response }
+                : f
+            )
+          );
+          
+          return response;
+        } catch (error) {
+          // Update status to error
+          setFilesWithStatus(prev => 
+            prev.map(f => 
+              f.file === fileWithStatus.file 
+                ? { ...f, status: 'error' as const, error: error instanceof Error ? error.message : 'Upload failed' }
+                : f
+            )
+          );
+          
+          throw error;
+        }
+      });
+
+      const results = await Promise.allSettled(uploadPromises);
+      const successful = results
+        .filter((result): result is PromiseFulfilledResult<ImageUploadResponse> => result.status === 'fulfilled')
+        .map(result => result.value);
+
+      const failed = results.filter(result => result.status === 'rejected').length;
+
+      if (successful.length > 0) {
+        toast({
+          title: "Yükleme Tamamlandı",
+          description: `${successful.length} resim başarıyla yüklendi.`,
+        });
+        
+        onUploadComplete?.(successful);
+      }
+
+      if (failed > 0) {
+        toast({
+          title: "Yükleme Hatası",
+          description: `${failed} resim yüklenemedi.`,
+          variant: "destructive"
+        });
+      }
+
+    } catch (error) {
+      toast({
+        title: "Yükleme Hatası",
+        description: error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu',
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+      onUploadEnd?.(); // Notify parent that upload ended
+    }
+  };
+
+  const retryUpload = (index: number) => {
+    const fileToRetry = filesWithStatus[index];
+    if (fileToRetry && fileToRetry.status === 'error') {
+      const updatedFiles = [...filesWithStatus];
+      updatedFiles[index] = { ...fileToRetry, status: 'pending', error: undefined };
+      setFilesWithStatus(updatedFiles);
+      uploadFiles([updatedFiles[index]]);
+    }
   };
 
   return (
@@ -98,19 +268,96 @@ export default function UploadZone({
       </div>
 
       {/* Selected Files */}
-      {selectedFiles.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="font-medium text-sm">Seçilen Resimler ({selectedFiles.length}/{maxFiles})</h4>
+      {filesWithStatus.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-sm">
+              Seçilen Resimler ({filesWithStatus.length}/{maxFiles})
+            </h4>
+            {!autoUpload && filesWithStatus.some(f => f.status === 'pending') && (
+              <Button
+                onClick={() => uploadFiles()}
+                disabled={isUploading}
+                size="sm"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Yükleniyor...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Tümünü Yükle
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+          
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {selectedFiles.map((file, index) => (
+            {filesWithStatus.map((fileWithStatus, index) => (
               <div key={index} className="relative group">
-                <div className="aspect-square bg-background-muted rounded-lg overflow-hidden border">
+                <div className="aspect-square bg-background-muted rounded-lg overflow-hidden border relative">
                   <img
-                    src={URL.createObjectURL(file)}
+                    src={fileWithStatus.uploadResponse?.enhancedUrl || fileWithStatus.uploadResponse?.cloudFrontUrl || URL.createObjectURL(fileWithStatus.file)}
                     alt={`Preview ${index + 1}`}
                     className="w-full h-full object-cover"
+                    id={`image-${index}`}
                   />
+                  
+                  {/* Enhancement Badge */}
+                  {fileWithStatus.uploadResponse?.enhancedUrl && (
+                    <div className="absolute top-2 left-2">
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-200">
+                        ✨ Enhanced
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {/* Status Overlay */}
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    {fileWithStatus.status === 'pending' && (
+                      <div className="text-white text-center">
+                        <Upload className="w-6 h-6 mx-auto mb-1" />
+                        <span className="text-xs">Bekliyor</span>
+                      </div>
+                    )}
+                    {fileWithStatus.status === 'uploading' && (
+                      <div className="text-white text-center">
+                        <Loader2 className="w-6 h-6 mx-auto mb-1 animate-spin" />
+                        <span className="text-xs">Yükleniyor...</span>
+                        {fileWithStatus.progress !== undefined && (
+                          <Progress value={fileWithStatus.progress} className="w-16 mt-1" />
+                        )}
+                      </div>
+                    )}
+                    {fileWithStatus.status === 'completed' && (
+                      <div className="text-green-400 text-center">
+                        <CheckCircle className="w-6 h-6 mx-auto mb-1" />
+                        <span className="text-xs">Tamamlandı</span>
+                      </div>
+                    )}
+                    {fileWithStatus.status === 'error' && (
+                      <div className="text-red-400 text-center">
+                        <AlertCircle className="w-6 h-6 mx-auto mb-1" />
+                        <span className="text-xs">Hata</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mt-1 h-6 px-2 text-xs text-white hover:text-white hover:bg-white/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            retryUpload(index);
+                          }}
+                        >
+                          Tekrar Dene
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
+                
                 <Button
                   variant="destructive"
                   size="icon"
@@ -122,9 +369,51 @@ export default function UploadZone({
                 >
                   <X className="w-3 h-3" />
                 </Button>
-                <p className="text-xs text-muted-foreground mt-1 truncate">
-                  {file.name}
-                </p>
+                
+                <div className="mt-1 space-y-1">
+                  <p className="text-xs text-muted-foreground truncate">
+                    {fileWithStatus.file.name}
+                  </p>
+                  {fileWithStatus.error && (
+                    <p className="text-xs text-red-500 truncate">
+                      {fileWithStatus.error}
+                    </p>
+                  )}
+                  
+                  {/* Image Comparison Buttons */}
+                  {fileWithStatus.uploadResponse?.enhancedUrl && fileWithStatus.status === 'completed' && (
+                    <div className="flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 px-2 text-xs flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const img = document.getElementById(`image-${index}`) as HTMLImageElement;
+                          if (img && fileWithStatus.uploadResponse?.cloudFrontUrl) {
+                            img.src = fileWithStatus.uploadResponse.cloudFrontUrl;
+                          }
+                        }}
+                      >
+                        Original
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 px-2 text-xs flex-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const img = document.getElementById(`image-${index}`) as HTMLImageElement;
+                          if (img && fileWithStatus.uploadResponse?.enhancedUrl) {
+                            img.src = fileWithStatus.uploadResponse.enhancedUrl;
+                          }
+                        }}
+                      >
+                        Enhanced
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
