@@ -232,6 +232,16 @@ export default function ChatInterface({
     }
   }, [messages]);
 
+  // Cleanup object URLs when component unmounts or selectedImages change
+  useEffect(() => {
+    return () => {
+      // Revoke all object URLs to prevent memory leaks
+      selectedImages.forEach(image => {
+        URL.revokeObjectURL(image.preview);
+      });
+    };
+  }, [selectedImages]);
+
   const MessageBubble = ({ message }: { message: Message }) => {
     // Check if message contains image URL
     const imageUrlMatch = message.content.match(/https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp)/i);

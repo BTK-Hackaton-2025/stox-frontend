@@ -163,8 +163,21 @@ export default function ImageComparison({
             size="sm"
             className="flex-1"
             onClick={() => {
-              const url = selectedView === 'enhanced' ? uploadResponse.enhancedUrl : uploadResponse.cloudFrontUrl;
-              window.open(url, '_blank');
+              // Handle 'split' view as 'enhanced', guard against missing URL
+              const url = selectedView === 'split' || selectedView === 'enhanced' 
+                ? uploadResponse.enhancedUrl 
+                : uploadResponse.cloudFrontUrl;
+              
+              if (!url) {
+                console.warn('No URL available for the selected view');
+                return;
+              }
+              
+              // Open safely with reverse tabnabbing protection
+              const newWindow = window.open(url, '_blank');
+              if (newWindow) {
+                newWindow.opener = null;
+              }
             }}
           >
             <Eye className="w-4 h-4 mr-1" />
@@ -175,9 +188,18 @@ export default function ImageComparison({
             size="sm"
             className="flex-1"
             onClick={() => {
-              const url = selectedView === 'enhanced' ? uploadResponse.enhancedUrl : uploadResponse.cloudFrontUrl;
+              // Handle 'split' view as 'enhanced', guard against missing URL
+              const url = selectedView === 'split' || selectedView === 'enhanced' 
+                ? uploadResponse.enhancedUrl 
+                : uploadResponse.cloudFrontUrl;
+              
+              if (!url) {
+                console.warn('No URL available for download');
+                return;
+              }
+              
               const link = document.createElement('a');
-              link.href = url || '';
+              link.href = url;
               link.download = fileName;
               link.click();
             }}

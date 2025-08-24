@@ -31,6 +31,7 @@ export default function AI() {
     
     setConversations(prev => [newConversation, ...prev]);
     setActiveConversation(newId);
+    return newId;
   };
 
   const handleDeleteConversation = (id: string) => {

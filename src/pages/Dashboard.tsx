@@ -146,12 +146,12 @@ export default function Dashboard() {
                         <div className="flex items-center space-x-2 mt-1">
                           <StatusBadge status={product.status} />
                           <Badge variant="outline" className="text-xs">
-                            {product.marketplaces} marketplaces
-                          </Badge>
+                            {product.marketplaces} pazaryeri                          
+                            </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Updated {product.lastUpdate}
-                        </p>
+                          Güncellendi: {product.lastUpdate}                        
+                          </p>
                       </div>
                     </div>
                   </CardContent>

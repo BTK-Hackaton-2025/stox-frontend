@@ -21,7 +21,7 @@ interface ChatSidebarProps {
   conversations: ChatConversation[];
   activeConversation: string | null;
   onSelectConversation: (id: string) => void;
-  onNewConversation: () => void;
+  onNewConversation: () => string;
   onDeleteConversation: (id: string) => void;
 }
 
@@ -73,7 +73,7 @@ export default function ChatSidebar({
         </div>
         
         <Button 
-          onClick={onNewConversation}
+          onClick={() => onNewConversation()}
           className="w-full justify-start text-sm font-medium"
           variant="outline"
         >

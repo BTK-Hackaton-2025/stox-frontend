@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { Upload, Image, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -43,6 +43,69 @@ export default function UploadZone({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Cache for blob URLs to prevent memory leaks
+  const blobUrlCacheRef = useRef<Map<File, string>>(new Map());
+
+  // Create or get cached blob URL for a file
+  const getBlobUrl = useCallback((file: File): string => {
+    const cache = blobUrlCacheRef.current;
+    
+    if (cache.has(file)) {
+      return cache.get(file)!;
+    }
+    
+    const blobUrl = URL.createObjectURL(file);
+    cache.set(file, blobUrl);
+    return blobUrl;
+  }, []);
+
+  // Revoke blob URL for a specific file
+  const revokeBlobUrl = useCallback((file: File) => {
+    const cache = blobUrlCacheRef.current;
+    const blobUrl = cache.get(file);
+    
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      cache.delete(file);
+    }
+  }, []);
+
+  // Cleanup all blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      const cache = blobUrlCacheRef.current;
+      cache.forEach((blobUrl) => {
+        URL.revokeObjectURL(blobUrl);
+      });
+      cache.clear();
+    };
+  }, []);
+
+  // Revoke blob URLs when upload response URLs become available
+  useEffect(() => {
+    filesWithStatus.forEach((fileWithStatus) => {
+      // If we have an upload response with URLs, we can revoke the blob URL
+      if (fileWithStatus.uploadResponse && 
+          (fileWithStatus.uploadResponse.enhancedUrl || fileWithStatus.uploadResponse.cloudFrontUrl)) {
+        revokeBlobUrl(fileWithStatus.file);
+      }
+    });
+  }, [filesWithStatus, revokeBlobUrl]);
+
+  // Get the appropriate image URL (upload response URL or cached blob URL)
+  const getImageUrl = useCallback((fileWithStatus: FileWithStatus): string => {
+    // Prioritize upload response URLs
+    if (fileWithStatus.uploadResponse?.enhancedUrl) {
+      return fileWithStatus.uploadResponse.enhancedUrl;
+    }
+    if (fileWithStatus.uploadResponse?.cloudFrontUrl) {
+      return fileWithStatus.uploadResponse.cloudFrontUrl;
+    }
+    
+    // Fall back to cached blob URL
+    return getBlobUrl(fileWithStatus.file);
+  }, [getBlobUrl]);
 
   const validateAndAddFiles = (files: File[]) => {
     const validFiles: File[] = [];
@@ -116,6 +179,12 @@ export default function UploadZone({
   };
 
   const removeFile = (index: number) => {
+    const fileToRemove = filesWithStatus[index];
+    if (fileToRemove) {
+      // Revoke blob URL before removing the file
+      revokeBlobUrl(fileToRemove.file);
+    }
+    
     const updatedFiles = filesWithStatus.filter((_, i) => i !== index);
     setFilesWithStatus(updatedFiles);
     
@@ -300,7 +369,7 @@ export default function UploadZone({
               <div key={index} className="relative group">
                 <div className="aspect-square bg-background-muted rounded-lg overflow-hidden border relative">
                   <img
-                    src={fileWithStatus.uploadResponse?.enhancedUrl || fileWithStatus.uploadResponse?.cloudFrontUrl || URL.createObjectURL(fileWithStatus.file)}
+                    src={getImageUrl(fileWithStatus)}
                     alt={`Preview ${index + 1}`}
                     className="w-full h-full object-cover"
                     id={`image-${index}`}

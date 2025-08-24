@@ -94,7 +94,7 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
 
   const currentConversation = conversations.find(c => c.id === activeConversation);
 
-  const handleNewConversation = () => {
+  const handleNewConversation = (): string => {
     const newId = Date.now().toString();
     const newConversation: ChatConversation = {
       id: newId,
@@ -110,6 +110,7 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
     
     setConversations(prev => [newConversation, ...prev]);
     setActiveConversation(newId);
+    return newId;
   };
 
   const handleDeleteConversation = (id: string) => {
@@ -119,19 +120,18 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
     }
   };
 
-  const handleSendMessage = async (content: string) => {
-    if (!activeConversation) {
-      handleNewConversation();
-      // Wait a bit for the new conversation to be set
-      setTimeout(() => handleSendMessage(content), 100);
-      return;
+  const handleSendMessage = async (content: string, targetConversationId?: string) => {
+    let conversationId = targetConversationId || activeConversation;
+    
+    if (!conversationId) {
+      conversationId = handleNewConversation();
     }
 
     const userMessage = aiService.createUserMessage(content);
 
     // Add user message immediately
     setConversations(prev => prev.map(conv => 
-      conv.id === activeConversation 
+      conv.id === conversationId 
         ? { 
             ...conv, 
             messages: [...conv.messages, userMessage],
@@ -147,13 +147,13 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
 
     try {
       // Get current conversation for context
-      const currentConv = conversations.find(c => c.id === activeConversation);
+      const currentConv = conversations.find(c => c.id === conversationId);
       const allMessages = currentConv ? [...currentConv.messages, userMessage] : [userMessage];
 
       // Send message to AI service
       const response = await aiService.sendConversationMessages(
         allMessages,
-        activeConversation
+        conversationId
       );
 
       // Format AI response
@@ -161,10 +161,10 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
 
       // Add AI response
       setConversations(prev => prev.map(conv => 
-        conv.id === activeConversation 
+        conv.id === conversationId 
           ? { 
               ...conv, 
-              messages: [...conv.messages.filter(m => m.id !== userMessage.id), userMessage, aiMessage],
+              messages: [...conv.messages, userMessage, aiMessage],
               lastMessage: aiMessage.content.substring(0, 50) + '...',
               timestamp: 'Şimdi',
               messageCount: conv.messages.length + 1,

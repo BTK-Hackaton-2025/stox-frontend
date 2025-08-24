@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,16 @@ export default function ImageSplitPopup({
   title = "Image Enhancement Results" 
 }: ImageSplitPopupProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Update currentImageIndex when images prop changes to prevent out-of-bounds index
+  useEffect(() => {
+    setCurrentImageIndex(prevIndex => {
+      if (images.length === 0) {
+        return 0;
+      }
+      return Math.min(prevIndex, images.length - 1);
+    });
+  }, [images]);
 
   const currentImage = images[currentImageIndex];
   const hasMultipleImages = images.length > 1;
