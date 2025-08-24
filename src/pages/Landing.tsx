@@ -105,11 +105,42 @@ const Landing = () => {
                   <div className="text-sm text-muted-foreground">Otomatik</div>
                 </div>
               </div>
+
             </div>
 
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-primary/20 rounded-3xl blur-3xl"></div>
               <FloatingCube />
+            </div>
+          </div>
+
+          {/* Marketplace Logos - Centered */}
+          <div className="mt-16 text-center">
+            <p className="text-sm text-muted-foreground font-medium mb-8">
+              Desteklenen Pazaryerleri
+            </p>
+            <div className="flex items-center justify-center gap-8 md:gap-12">
+              <div className="flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300">
+                <img 
+                  src="/amazon-logo-official.svg" 
+                  alt="Amazon" 
+                  className="h-6 md:h-8 w-auto grayscale hover:grayscale-0 transition-all duration-300"
+                />
+              </div>
+              <div className="flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300">
+                <img 
+                  src="/hepsiburada-logo-official.svg" 
+                  alt="Hepsiburada" 
+                  className="h-6 md:h-8 w-auto grayscale hover:grayscale-0 transition-all duration-300"
+                />
+              </div>
+              <div className="flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300">
+                <img 
+                  src="/trendyol-logo-official.svg" 
+                  alt="Trendyol" 
+                  className="h-6 md:h-8 w-auto grayscale hover:grayscale-0 transition-all duration-300"
+                />
+              </div>
             </div>
           </div>
         </div>
