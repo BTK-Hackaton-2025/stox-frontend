@@ -123,13 +123,16 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
   const handleSendMessage = async (content: string, targetConversationId?: string) => {
     let conversationId = targetConversationId || activeConversation;
     
-    if (!conversationId) {
+    // Guard against stale/deleted targetConversationId
+    if (conversationId && !conversations.find(c => c.id === conversationId)) {
+      conversationId = handleNewConversation();
+    } else if (!conversationId) {
       conversationId = handleNewConversation();
     }
 
     const userMessage = aiService.createUserMessage(content);
 
-    // Add user message immediately
+    // Add user message immediately using resolved conversationId
     setConversations(prev => prev.map(conv => 
       conv.id === conversationId 
         ? { 
@@ -143,10 +146,15 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
         : conv
     ));
 
+    // Update activeConversation to the resolved conversationId
+    if (activeConversation !== conversationId) {
+      setActiveConversation(conversationId);
+    }
+
     setIsLoading(true);
 
     try {
-      // Get current conversation for context
+      // Get current conversation for context using resolved conversationId
       const currentConv = conversations.find(c => c.id === conversationId);
       const allMessages = currentConv ? [...currentConv.messages, userMessage] : [userMessage];
 
@@ -159,7 +167,7 @@ export default function AIPanel({ isOpen, onClose }: AIPanelProps) {
       // Format AI response
       const aiMessage = aiService.formatChatMessage(response);
 
-      // Add AI response
+      // Add AI response using resolved conversationId
       setConversations(prev => prev.map(conv => 
         conv.id === conversationId 
           ? { 

@@ -36,7 +36,7 @@ interface Message {
 
 interface ChatInterfaceProps {
   messages: Message[];
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, conversationId?: string) => void | Promise<void>;
   isLoading?: boolean;
   conversationTitle?: string;
 }
