@@ -1,5 +1,24 @@
 import React, { useState } from "react";
-import { Settings2, User, Store, Key, Save, Eye, EyeOff, Plus, Trash2, Check, X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/lib/api";
+import type { MarketplaceCredential } from "@/types/products";
+import {
+  Settings2,
+  User,
+  Store,
+  Key,
+  Save,
+  Eye,
+  EyeOff,
+  Plus,
+  Trash2,
+  Check,
+  X,
+  ShoppingCart,
+  Link,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,99 +26,173 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-
-interface MarketplaceCredential {
-  id: string;
-  marketplace: string;
-  apiKey: string;
-  secretKey: string;
-  status: 'active' | 'inactive' | 'error';
-  lastSync?: string;
-}
 
 export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [showApiKeys, setShowApiKeys] = useState<Record<string, boolean>>({});
+  const [mockECommerceConfig, setMockECommerceConfig] = useState({
+    apiKey: "",
+    isLoading: false,
+    isConnected: false,
+  });
   const [userSettings, setUserSettings] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    phone: '',
-    timezone: 'UTC',
-    language: 'en',
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phone: "",
+    timezone: "UTC",
+    language: "en",
     emailNotifications: true,
     pushNotifications: true,
     marketingEmails: false,
   });
 
   // TODO: Replace with API call to fetch user's marketplace credentials
-  const [marketplaceCredentials, setMarketplaceCredentials] = useState<MarketplaceCredential[]>([]);
+  const [marketplaceCredentials, setMarketplaceCredentials] = useState<
+    MarketplaceCredential[]
+  >([]);
 
   const [newCredential, setNewCredential] = useState({
-    marketplace: '',
-    apiKey: '',
-    secretKey: '',
-    additionalFields: {} as Record<string, string>
+    marketplace: "",
+    apiKey: "",
+    secretKey: "",
+    additionalFields: {} as Record<string, string>,
   });
 
   const availableMarketplaces = [
-    { 
-      value: 'amazon', 
-      label: 'Amazon',
+    {
+      value: "mockecommerce",
+      label: "MockECommerce",
       fields: [
-        { key: 'sellerId', label: 'Seller ID', required: true },
-        { key: 'marketplaceId', label: 'Marketplace ID', required: true }
-      ]
+        {
+          key: "baseUrl",
+          label: "Base URL",
+          required: true,
+          defaultValue: "https://mock-api.gdgikcu.dev/api/v1",
+        },
+        { key: "email", label: "Login Email", required: true },
+        { key: "password", label: "Login Password", required: true },
+      ],
     },
-    { 
-      value: 'trendyol', 
-      label: 'Trendyol',
+    {
+      value: "amazon",
+      label: "Amazon",
       fields: [
-        { key: 'supplierId', label: 'Supplier ID', required: true }
-      ]
+        { key: "sellerId", label: "Seller ID", required: true },
+        { key: "marketplaceId", label: "Marketplace ID", required: true },
+      ],
     },
-    { 
-      value: 'hepsiburada', 
-      label: 'Hepsiburada',
-      fields: [
-        { key: 'merchantId', label: 'Merchant ID', required: true }
-      ]
+    {
+      value: "trendyol",
+      label: "Trendyol",
+      fields: [{ key: "supplierId", label: "Supplier ID", required: true }],
     },
-    { 
-      value: 'ebay', 
-      label: 'eBay',
-      fields: [
-        { key: 'devId', label: 'Developer ID', required: true },
-        { key: 'certId', label: 'Certificate ID', required: true }
-      ]
+    {
+      value: "hepsiburada",
+      label: "Hepsiburada",
+      fields: [{ key: "merchantId", label: "Merchant ID", required: true }],
     },
-    { 
-      value: 'etsy', 
-      label: 'Etsy',
+    {
+      value: "ebay",
+      label: "eBay",
       fields: [
-        { key: 'shopId', label: 'Shop ID', required: true }
-      ]
-    }
+        { key: "devId", label: "Developer ID", required: true },
+        { key: "certId", label: "Certificate ID", required: true },
+      ],
+    },
+    {
+      value: "etsy",
+      label: "Etsy",
+      fields: [{ key: "shopId", label: "Shop ID", required: true }],
+    },
   ];
 
   const toggleApiKeyVisibility = (credentialId: string) => {
-    setShowApiKeys(prev => ({
+    setShowApiKeys((prev) => ({
       ...prev,
-      [credentialId]: !prev[credentialId]
+      [credentialId]: !prev[credentialId],
     }));
   };
 
+  const handleMockECommerceConnect = async () => {
+    if (!mockECommerceConfig.apiKey.trim()) {
+      toast({
+        title: "Hata",
+        description: "API key gereklidir.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMockECommerceConfig((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      // Test API key by making a simple request to MockECommerce API
+      const response = await fetch(
+        "https://mock-api.gdgikcu.dev/api/v1/Product/my-products",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${mockECommerceConfig.apiKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Save credentials to our backend
+        const credential = {
+          marketplace: "mockecommerce",
+          apiKey: mockECommerceConfig.apiKey,
+          secretKey: "",
+        };
+
+        await apiClient.saveMarketplaceCredential(credential);
+
+        setMockECommerceConfig((prev) => ({
+          ...prev,
+          isLoading: false,
+          isConnected: true,
+        }));
+
+        toast({
+          title: "Başarılı",
+          description:
+            "MockECommerce API key başarıyla doğrulandı ve kaydedildi.",
+        });
+      } else {
+        throw new Error("API key doğrulanamadı");
+      }
+    } catch (error) {
+      setMockECommerceConfig((prev) => ({
+        ...prev,
+        isLoading: false,
+        isConnected: false,
+      }));
+      toast({
+        title: "Hata",
+        description:
+          error instanceof Error ? error.message : "API key doğrulanamadı.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleUserSettingsChange = (field: string, value: string) => {
-    setUserSettings(prev => ({
+    setUserSettings((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -121,7 +214,11 @@ export default function Settings() {
   };
 
   const handleAddCredential = async () => {
-    if (!newCredential.marketplace || !newCredential.apiKey || !newCredential.secretKey) {
+    if (
+      !newCredential.marketplace ||
+      !newCredential.apiKey ||
+      !newCredential.secretKey
+    ) {
       toast({
         title: "Hata",
         description: "Lütfen tüm alanları doldurunuz.",
@@ -133,23 +230,25 @@ export default function Settings() {
     try {
       // TODO: Replace with actual API call to save marketplace credentials
       // const response = await apiClient.post('/user/marketplace-credentials', newCredential);
-      
-      const selectedMarketplace = availableMarketplaces.find(m => m.value === newCredential.marketplace);
-      
+
+      const selectedMarketplace = availableMarketplaces.find(
+        (m) => m.value === newCredential.marketplace
+      );
+
       const newCred: MarketplaceCredential = {
         id: Date.now().toString(),
         marketplace: selectedMarketplace?.label || newCredential.marketplace,
         apiKey: newCredential.apiKey,
         secretKey: newCredential.secretKey,
-        status: 'inactive'
+        status: "inactive",
       };
 
-      setMarketplaceCredentials(prev => [...prev, newCred]);
+      setMarketplaceCredentials((prev) => [...prev, newCred]);
       setNewCredential({
-        marketplace: '',
-        apiKey: '',
-        secretKey: '',
-        additionalFields: {}
+        marketplace: "",
+        apiKey: "",
+        secretKey: "",
+        additionalFields: {},
       });
 
       toast({
@@ -169,8 +268,10 @@ export default function Settings() {
     try {
       // TODO: Replace with actual API call to delete marketplace credentials
       // await apiClient.delete(`/user/marketplace-credentials/${id}`);
-      
-      setMarketplaceCredentials(prev => prev.filter(cred => cred.id !== id));
+
+      setMarketplaceCredentials((prev) =>
+        prev.filter((cred) => cred.id !== id)
+      );
       toast({
         title: "Kimlik bilgileri silindi",
         description: "Pazaryerleri kimlik bilgileri silindi.",
@@ -185,31 +286,36 @@ export default function Settings() {
   };
 
   const handleTestCredential = async (id: string) => {
-    const credential = marketplaceCredentials.find(c => c.id === id);
+    const credential = marketplaceCredentials.find((c) => c.id === id);
     if (!credential) return;
 
     try {
       // TODO: Replace with actual API call to test marketplace credentials
       // const response = await apiClient.post(`/user/marketplace-credentials/${id}/test`);
       // const status = response.data.success ? 'active' : 'error';
-      
+
       // Simulate API test for now
-      const status = Math.random() > 0.3 ? 'active' : 'error';
-      
-      setMarketplaceCredentials(prev =>
-        prev.map(cred =>
+      const status = Math.random() > 0.3 ? "active" : "error";
+
+      setMarketplaceCredentials((prev) =>
+        prev.map((cred) =>
           cred.id === id
-            ? { ...cred, status: status as 'active' | 'inactive' | 'error', lastSync: 'Just now' }
+            ? {
+                ...cred,
+                status: status as "active" | "inactive" | "error",
+                lastSync: "Just now",
+              }
             : cred
         )
       );
-      
+
       toast({
-        title: status === 'active' ? "Bağlantı başarılı" : "Bağlantı hatası",
-        description: status === 'active' 
-          ? "Pazaryerleri kimlik bilgileri doğrulandı." 
-          : "Kimlik bilgilerini kontrol edin.",
-        variant: status === 'active' ? "default" : "destructive",
+        title: status === "active" ? "Bağlantı başarılı" : "Bağlantı hatası",
+        description:
+          status === "active"
+            ? "Pazaryerleri kimlik bilgileri doğrulandı."
+            : "Kimlik bilgilerini kontrol edin.",
+        variant: status === "active" ? "default" : "destructive",
       });
     } catch (error) {
       toast({
@@ -222,16 +328,18 @@ export default function Settings() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
+      case "active":
         return <Badge className="bg-green-100 text-green-800">Aktif</Badge>;
-      case 'error':
+      case "error":
         return <Badge variant="destructive">Hata</Badge>;
       default:
         return <Badge variant="secondary">Pasif</Badge>;
     }
   };
 
-  const selectedMarketplace = availableMarketplaces.find(m => m.value === newCredential.marketplace);
+  const selectedMarketplace = availableMarketplaces.find(
+    (m) => m.value === newCredential.marketplace
+  );
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -274,7 +382,9 @@ export default function Settings() {
                   <Input
                     id="firstName"
                     value={userSettings.firstName}
-                    onChange={(e) => handleUserSettingsChange('firstName', e.target.value)}
+                    onChange={(e) =>
+                      handleUserSettingsChange("firstName", e.target.value)
+                    }
                     className="mt-1"
                   />
                 </div>
@@ -283,12 +393,14 @@ export default function Settings() {
                   <Input
                     id="lastName"
                     value={userSettings.lastName}
-                    onChange={(e) => handleUserSettingsChange('lastName', e.target.value)}
+                    onChange={(e) =>
+                      handleUserSettingsChange("lastName", e.target.value)
+                    }
                     className="mt-1"
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="email">E-posta Adresiniz</Label>
@@ -296,7 +408,9 @@ export default function Settings() {
                     id="email"
                     type="email"
                     value={userSettings.email}
-                    onChange={(e) => handleUserSettingsChange('email', e.target.value)}
+                    onChange={(e) =>
+                      handleUserSettingsChange("email", e.target.value)
+                    }
                     className="mt-1"
                   />
                 </div>
@@ -305,7 +419,9 @@ export default function Settings() {
                   <Input
                     id="phone"
                     value={userSettings.phone}
-                    onChange={(e) => handleUserSettingsChange('phone', e.target.value)}
+                    onChange={(e) =>
+                      handleUserSettingsChange("phone", e.target.value)
+                    }
                     placeholder="+1 (555) 123-4567"
                     className="mt-1"
                   />
@@ -315,7 +431,12 @@ export default function Settings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="timezone">Zaman Dilimi</Label>
-                  <Select value={userSettings.timezone} onValueChange={(value) => handleUserSettingsChange('timezone', value)}>
+                  <Select
+                    value={userSettings.timezone}
+                    onValueChange={(value) =>
+                      handleUserSettingsChange("timezone", value)
+                    }
+                  >
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
@@ -330,7 +451,12 @@ export default function Settings() {
                 </div>
                 <div>
                   <Label htmlFor="language">Dil</Label>
-                  <Select value={userSettings.language} onValueChange={(value) => handleUserSettingsChange('language', value)}>
+                  <Select
+                    value={userSettings.language}
+                    onValueChange={(value) =>
+                      handleUserSettingsChange("language", value)
+                    }
+                  >
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
@@ -354,48 +480,87 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="email-notifications" className="font-medium text-foreground">E-posta Bildirimleri</Label>
-                  <p className="text-sm text-muted-foreground">Siparişler ve güncellemeler hakkında bildirim alın</p>
+                  <Label
+                    htmlFor="email-notifications"
+                    className="font-medium text-foreground"
+                  >
+                    E-posta Bildirimleri
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Siparişler ve güncellemeler hakkında bildirim alın
+                  </p>
                 </div>
                 <Switch
                   id="email-notifications"
                   checked={userSettings.emailNotifications}
-                  onCheckedChange={(checked) => handleUserSettingsChange('emailNotifications', checked.toString())}
+                  onCheckedChange={(checked) =>
+                    handleUserSettingsChange(
+                      "emailNotifications",
+                      checked.toString()
+                    )
+                  }
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="push-notifications" className="font-medium text-foreground">Push Bildirimleri</Label>
-                  <p className="text-sm text-muted-foreground">Tarayıcınızda anında uyarılar alın</p>
+                  <Label
+                    htmlFor="push-notifications"
+                    className="font-medium text-foreground"
+                  >
+                    Push Bildirimleri
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Tarayıcınızda anında uyarılar alın
+                  </p>
                 </div>
                 <Switch
                   id="push-notifications"
                   checked={userSettings.pushNotifications}
-                  onCheckedChange={(checked) => handleUserSettingsChange('pushNotifications', checked.toString())}
+                  onCheckedChange={(checked) =>
+                    handleUserSettingsChange(
+                      "pushNotifications",
+                      checked.toString()
+                    )
+                  }
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="marketing-emails" className="font-medium text-foreground">Pazaryerleri Bildirimleri</Label>
-                  <p className="text-sm text-muted-foreground">Promosyonel içerik ve özellik güncellemeleri alın</p>
+                  <Label
+                    htmlFor="marketing-emails"
+                    className="font-medium text-foreground"
+                  >
+                    Pazaryerleri Bildirimleri
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Promosyonel içerik ve özellik güncellemeleri alın
+                  </p>
                 </div>
                 <Switch
                   id="marketing-emails"
                   checked={userSettings.marketingEmails}
-                  onCheckedChange={(checked) => handleUserSettingsChange('marketingEmails', checked.toString())}
+                  onCheckedChange={(checked) =>
+                    handleUserSettingsChange(
+                      "marketingEmails",
+                      checked.toString()
+                    )
+                  }
                 />
               </div>
             </CardContent>
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSaveUserSettings} className="bg-primary hover:bg-primary/90">
+            <Button
+              onClick={handleSaveUserSettings}
+              className="bg-primary hover:bg-primary/90"
+            >
               <Save className="w-4 h-4 mr-2" />
               Değişiklikleri Kaydet
             </Button>
@@ -412,85 +577,182 @@ export default function Settings() {
                 Entegre Pazaryerleri
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Pazaryerleri API kimlik bilgilerinizi ve bağlantı durumunuzu yönetin
+                Pazaryerleri API kimlik bilgilerinizi ve bağlantı durumunuzu
+                yönetin
               </p>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {marketplaceCredentials.length > 0 ? (
                   marketplaceCredentials.map((credential) => (
-                  <div key={credential.id} className="p-4 border border-border rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="font-medium">{credential.marketplace}</h3>
-                        {getStatusBadge(credential.status)}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleTestCredential(credential.id)}
-                        >
-                          Bağlantıyı Test Et
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveCredential(credential.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs font-medium text-foreground">API Anahtarı</Label>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Input
-                            type={showApiKeys[credential.id] ? "text" : "password"}
-                            value={credential.apiKey}
-                            readOnly
-                            className="font-mono text-sm"
-                          />
+                    <div
+                      key={credential.id}
+                      className="p-4 border border-border rounded-lg"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <h3 className="font-medium">
+                            {credential.marketplace}
+                          </h3>
+                          {getStatusBadge(credential.status)}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleTestCredential(credential.id)}
+                          >
+                            Bağlantıyı Test Et
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => toggleApiKeyVisibility(credential.id)}
+                            onClick={() =>
+                              handleRemoveCredential(credential.id)
+                            }
+                            className="text-destructive hover:text-destructive"
                           >
-                            {showApiKeys[credential.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
-                      <div>
-                        <Label className="text-xs font-medium text-foreground">Gizli Anahtar</Label>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Input
-                            type="password"
-                            value={credential.secretKey}
-                            readOnly
-                            className="font-mono text-sm"
-                          />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs font-medium text-foreground">
+                            API Anahtarı
+                          </Label>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Input
+                              type={
+                                showApiKeys[credential.id] ? "text" : "password"
+                              }
+                              value={credential.apiKey}
+                              readOnly
+                              className="font-mono text-sm"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                toggleApiKeyVisibility(credential.id)
+                              }
+                            >
+                              {showApiKeys[credential.id] ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium text-foreground">
+                            Gizli Anahtar
+                          </Label>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Input
+                              type="password"
+                              value={credential.secretKey}
+                              readOnly
+                              className="font-mono text-sm"
+                            />
+                          </div>
                         </div>
                       </div>
+
+                      {credential.lastSync && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Son eşitleme: {credential.lastSync}
+                        </p>
+                      )}
                     </div>
-                    
-                    {credential.lastSync && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Son eşitleme: {credential.lastSync}
-                      </p>
-                    )}
-                  </div>
                   ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Store className="w-12 h-12 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Henüz pazaryeri entegrasyonu yok</h3>
-                    <p className="mb-4">Ürünlerinizi pazaryerlerinde satmaya başlamak için API kimlik bilgilerinizi ekleyin</p>
+                    <h3 className="text-lg font-medium mb-2">
+                      Henüz pazaryeri entegrasyonu yok
+                    </h3>
+                    <p className="mb-4">
+                      Ürünlerinizi pazaryerlerinde satmaya başlamak için API
+                      kimlik bilgilerinizi ekleyin
+                    </p>
                   </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* MockECommerce API Key Configuration */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                MockECommerce API Yapılandırması
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                MockECommerce API key'inizi girerek entegrasyonu aktifleştirin
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="mock-api-key">MockECommerce API Key</Label>
+                <Input
+                  id="mock-api-key"
+                  type="password"
+                  value={mockECommerceConfig.apiKey}
+                  onChange={(e) =>
+                    setMockECommerceConfig((prev) => ({
+                      ...prev,
+                      apiKey: e.target.value,
+                    }))
+                  }
+                  placeholder="API key'inizi girin..."
+                  className="mt-1"
+                />
+              </div>
+
+              <Button
+                onClick={handleMockECommerceConnect}
+                disabled={
+                  !mockECommerceConfig.apiKey.trim() ||
+                  mockECommerceConfig.isLoading
+                }
+                className="w-full"
+              >
+                {mockECommerceConfig.isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Doğrulanıyor...
+                  </>
+                ) : mockECommerceConfig.isConnected ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Bağlantı Aktif
+                  </>
+                ) : (
+                  <>
+                    <Link className="w-4 h-4 mr-2" />
+                    API Key'i Doğrula
+                  </>
+                )}
+              </Button>
+
+              {mockECommerceConfig.isConnected && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center">
+                    <Check className="w-5 h-5 text-green-600 mr-2" />
+                    <span className="text-green-800 font-medium">
+                      MockECommerce entegrasyonu aktif
+                    </span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-1">
+                    Artık Products sayfasından MockECommerce ürünlerinizi
+                    yönetebilirsiniz.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -508,16 +770,25 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="marketplace-select">Pazaryerleri Seçin</Label>
-                <Select 
-                  value={newCredential.marketplace} 
-                  onValueChange={(value) => setNewCredential(prev => ({ ...prev, marketplace: value, additionalFields: {} }))}
+                <Select
+                  value={newCredential.marketplace}
+                  onValueChange={(value) =>
+                    setNewCredential((prev) => ({
+                      ...prev,
+                      marketplace: value,
+                      additionalFields: {},
+                    }))
+                  }
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Bir pazaryerini seçin" />
                   </SelectTrigger>
                   <SelectContent>
                     {availableMarketplaces.map((marketplace) => (
-                      <SelectItem key={marketplace.value} value={marketplace.value}>
+                      <SelectItem
+                        key={marketplace.value}
+                        value={marketplace.value}
+                      >
                         {marketplace.label}
                       </SelectItem>
                     ))}
@@ -533,7 +804,12 @@ export default function Settings() {
                       <Input
                         id="api-key"
                         value={newCredential.apiKey}
-                        onChange={(e) => setNewCredential(prev => ({ ...prev, apiKey: e.target.value }))}
+                        onChange={(e) =>
+                          setNewCredential((prev) => ({
+                            ...prev,
+                            apiKey: e.target.value,
+                          }))
+                        }
                         placeholder="API anahtarınızı giriniz"
                         className="mt-1"
                       />
@@ -544,7 +820,12 @@ export default function Settings() {
                         id="secret-key"
                         type="password"
                         value={newCredential.secretKey}
-                        onChange={(e) => setNewCredential(prev => ({ ...prev, secretKey: e.target.value }))}
+                        onChange={(e) =>
+                          setNewCredential((prev) => ({
+                            ...prev,
+                            secretKey: e.target.value,
+                          }))
+                        }
                         placeholder="Gizli anahtarınızı giriniz"
                         className="mt-1"
                       />
@@ -552,37 +833,51 @@ export default function Settings() {
                   </div>
 
                   {/* Additional marketplace-specific fields */}
-                  {selectedMarketplace && selectedMarketplace.fields.length > 0 && (
-                    <div className="space-y-4">
-                      <Separator />
-                      <h4 className="font-medium text-sm">Ekstra Gerekli Bilgiler</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedMarketplace.fields.map((field) => (
-                          <div key={field.key}>
-                            <Label htmlFor={field.key} className="font-medium text-foreground">
-                              {field.label} {field.required && '*'}
-                            </Label>
-                            <Input
-                              id={field.key}
-                              value={newCredential.additionalFields[field.key] || ''}
-                              onChange={(e) => setNewCredential(prev => ({
-                                ...prev,
-                                additionalFields: {
-                                  ...prev.additionalFields,
-                                  [field.key]: e.target.value
+                  {selectedMarketplace &&
+                    selectedMarketplace.fields.length > 0 && (
+                      <div className="space-y-4">
+                        <Separator />
+                        <h4 className="font-medium text-sm">
+                          Ekstra Gerekli Bilgiler
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedMarketplace.fields.map((field) => (
+                            <div key={field.key}>
+                              <Label
+                                htmlFor={field.key}
+                                className="font-medium text-foreground"
+                              >
+                                {field.label} {field.required && "*"}
+                              </Label>
+                              <Input
+                                id={field.key}
+                                value={
+                                  newCredential.additionalFields[field.key] ||
+                                  ""
                                 }
-                              }))}
-                              placeholder={`Enter your ${field.label.toLowerCase()}`}
-                              className="mt-1"
-                            />
-                          </div>
-                        ))}
+                                onChange={(e) =>
+                                  setNewCredential((prev) => ({
+                                    ...prev,
+                                    additionalFields: {
+                                      ...prev.additionalFields,
+                                      [field.key]: e.target.value,
+                                    },
+                                  }))
+                                }
+                                placeholder={`Enter your ${field.label.toLowerCase()}`}
+                                className="mt-1"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   <div className="flex justify-end pt-4">
-                    <Button onClick={handleAddCredential} className="bg-primary hover:bg-primary/90">
+                    <Button
+                      onClick={handleAddCredential}
+                      className="bg-primary hover:bg-primary/90"
+                    >
                       <Plus className="w-4 h-4 mr-2" />
                       Kimlik Bilgilerini Ekle
                     </Button>
@@ -600,26 +895,39 @@ export default function Settings() {
             <CardContent>
               <div className="space-y-4 text-sm">
                 <div>
-                  <h4 className="font-medium mb-2">API kimlik bilgilerinizi nasıl alınır:</h4>
+                  <h4 className="font-medium mb-2">
+                    API kimlik bilgilerinizi nasıl alınır:
+                  </h4>
                   <ul className="space-y-2 text-muted-foreground">
                     <li className="flex items-start">
-                      <span className="font-medium text-foreground mr-2">Amazon:</span>
-                      Satıcı Merkezi → Ayarlar → Kullanıcı İzinleri → Geliştirici Merkezi
+                      <span className="font-medium text-foreground mr-2">
+                        Amazon:
+                      </span>
+                      Satıcı Merkezi → Ayarlar → Kullanıcı İzinleri →
+                      Geliştirici Merkezi
                     </li>
                     <li className="flex items-start">
-                      <span className="font-medium text-foreground mr-2">Trendyol:</span>
+                      <span className="font-medium text-foreground mr-2">
+                        Trendyol:
+                      </span>
                       Pazaryerleri Entegrasyon bölümünüzdeki erişim
                     </li>
                     <li className="flex items-start">
-                      <span className="font-medium text-foreground mr-2">Hepsiburada:</span>
+                      <span className="font-medium text-foreground mr-2">
+                        Hepsiburada:
+                      </span>
                       Pazaryer Merkezi → API Yönetimi
                     </li>
                     <li className="flex items-start">
-                      <span className="font-medium text-foreground mr-2">eBay:</span>
+                      <span className="font-medium text-foreground mr-2">
+                        eBay:
+                      </span>
                       eBay Geliştirici Programında bir uygulama oluşturun
                     </li>
                     <li className="flex items-start">
-                      <span className="font-medium text-foreground mr-2">Etsy:</span>
+                      <span className="font-medium text-foreground mr-2">
+                        Etsy:
+                      </span>
                       Etsy Geliştirici Portalında uygulamanızı kaydedin
                     </li>
                   </ul>
@@ -628,10 +936,18 @@ export default function Settings() {
                 <div>
                   <h4 className="font-medium mb-2">Güvenlik Notları:</h4>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>• Kimlik bilgileriniz şifrelenmiş ve güvenli bir şekilde saklanır</li>
-                    <li>• API anahtarlarınızı yetkisiz taraflara paylaşmayın</li>
+                    <li>
+                      • Kimlik bilgileriniz şifrelenmiş ve güvenli bir şekilde
+                      saklanır
+                    </li>
+                    <li>
+                      • API anahtarlarınızı yetkisiz taraflara paylaşmayın
+                    </li>
                     <li>• Kimlik bilgilerinizi düzenli olarak değiştirin</li>
-                    <li>• Pazaryerleri hesaplarınızın normal işlemleri için izleyin</li>
+                    <li>
+                      • Pazaryerleri hesaplarınızın normal işlemleri için
+                      izleyin
+                    </li>
                   </ul>
                 </div>
               </div>
